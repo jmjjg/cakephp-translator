@@ -8,6 +8,7 @@
 namespace Translator\Test\TestCase\Utility;
 
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use Cake\TestSuite\TestCase;
 use Translator\Utility\Translator;
 
@@ -16,14 +17,23 @@ use Translator\Utility\Translator;
  */
 class TranslatorTest extends TestCase
 {
+    protected $locales = null;
+
     public function setUp()
     {
-        // FIXME
-//        App::build(array('Locale' => CakePlugin::path('Translator') . 'Test' . DS . 'Locale' . DS), App::PREPEND);
-//        debug(App::path('Locale'));
         parent::setUp();
-        Configure::write('Config.language', 'fr_FR');
+
+        $this->locales = Configure::read('App.paths.locales');
+        $locales = Plugin::classPath('Translator') . DS . '..' . DS . 'tests' . DS . 'Locale' . DS;
+        Configure::write('App.paths.locales', $locales);
+
         Translator::reset();
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+        Configure::write('App.paths.locales', $this->locales);
     }
 
     /**
@@ -68,57 +78,10 @@ class TranslatorTest extends TestCase
      */
     public function testUnderscore()
     {
-        Translator::domains('search_plugin');
-        $result = Translator::__('Search.Personne.nom');
+        Translator::domains('groups_index');
+        $result = Translator::__('Group.name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
-
-        /*// -----------------------------------------------------------------
-
-        Translator::domains('cg93_contratsinsertion_search');
-        $result = Translator::__('Referent.nom_complet');
-        $expected = 'Personne établissant le CER';
-        $this->assertEquals($expected, $result);
-
-        // -----------------------------------------------------------------
-
-        Translator::domains('contratsinsertion_search');
-        $result = Translator::__('Referent.nom_complet');
-        $expected = 'Référent lié';
-        $this->assertEquals($expected, $result);
-
-        // -----------------------------------------------------------------
-
-        Translator::domains('contratsinsertion');
-        $result = Translator::__('Referent.nom_complet');
-        $expected = 'Referent.nom_complet';
-        $this->assertEquals($expected, $result);
-
-        // -----------------------------------------------------------------
-
-        Translator::domains('referent');
-        $result = Translator::__('Referent.nom_complet');
-        $expected = 'Nom du prescripteur';
-        $this->assertEquals($expected, $result);
-
-        // -----------------------------------------------------------------
-
-        Translator::domains(array('cg93_contratsinsertion_search', 'contratsinsertion_search', 'contratsinsertion', 'referent'));
-        for ($i = 0; $i < 2; $i++) {
-            $result = Translator::__('Referent.nom_complet');
-            $expected = 'Personne établissant le CER';
-            $this->assertEquals($expected, $result);
-        }
-
-        // -----------------------------------------------------------------
-        // C/P from BasicsTest's testTranslate()
-        $result = Translator::__('Some string with %s', 'arguments');
-        $expected = 'Some string with arguments';
-        $this->assertEquals($expected, $result);
-
-        $result = Translator::__('Some string with %s %s', 'multiple', 'arguments');
-        $expected = 'Some string with multiple arguments';
-        $this->assertEquals($expected, $result);*/
 
         $result = Translator::__('Some string with {0} {1}', array('other multiple', 'arguments'));
         $expected = 'Some string with other multiple arguments';
@@ -132,10 +95,10 @@ class TranslatorTest extends TestCase
      */
     public function testTainted()
     {
-        Translator::domains('search_plugin');
+        Translator::domains('groups_index');
         $this->assertFalse(Translator::tainted());
 
-        Translator::__('Search.Personne.nom');
+        Translator::__('Group.name');
         $this->assertTrue(Translator::tainted());
     }
 
@@ -147,14 +110,14 @@ class TranslatorTest extends TestCase
      */
     public function testReset()
     {
-        Translator::domains('search_plugin');
-        $result = Translator::__('Search.Personne.nom');
+        Translator::domains('groups_index');
+        $result = Translator::__('Group.name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
 
         Translator::reset();
-        $result = Translator::__('Search.Personne.nom');
-        $expected = 'Search.Personne.nom';
+        $result = Translator::__('Group.name');
+        $expected = 'Group.name';
         $this->assertEquals($expected, $result);
     }
 
@@ -165,17 +128,17 @@ class TranslatorTest extends TestCase
      */
     public function testExport()
     {
-        Translator::domains('search_plugin');
+        Translator::domains('groups_index');
 
-        Translator::__('Search.Personne.nom');
+        Translator::__('Group.name');
         Translator::__('Some string with {0}', ['arguments']);
 
         $result = Translator::export();
         $expected = array(
             'fr_FR' => array(
-                'a:1:{i:0;s:13:"search_plugin";}' => array(
+                'a:1:{i:0;s:12:"groups_index";}' => array(
                     '__' => array(
-                        'Search.Personne.nom' => 'Nom',
+                        'Group.name' => 'Nom',
                         'Some string with {0}' => 'Some string with {0}',
                     )
                 )
@@ -193,16 +156,16 @@ class TranslatorTest extends TestCase
     {
         $cache = array(
             'fr_FR' => array(
-                'a:1:{i:0;s:14:"search_plugin2";}' => array(
+                'a:1:{i:0;s:13:"groups_index2";}' => array(
                     '__' => array(
-                        'Search.Personne.nom' => 'Nom',
+                        'Group.name' => 'Nom',
                     )
                 )
             )
         );
         Translator::import($cache);
-        Translator::domains('search_plugin2');
-        $result = Translator::__('Search.Personne.nom');
+        Translator::domains('groups_index2');
+        $result = Translator::__('Group.name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
     }
@@ -216,17 +179,17 @@ class TranslatorTest extends TestCase
     {
         $cache = array(
             'fr_FR' => array(
-                'a:1:{i:0;s:14:"search_plugin2";}' => array(
+                'a:1:{i:0;s:13:"groups_index2";}' => array(
                     '__' => array(
-                        'Search.Personne.nom' => 'Nom',
+                        'Group.name' => 'Nom',
                     )
                 )
             )
         );
         Translator::import($cache);
         Translator::import(array());
-        Translator::domains('search_plugin2');
-        $result = Translator::__('Search.Personne.nom');
+        Translator::domains('groups_index2');
+        $result = Translator::__('Group.name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
     }

@@ -51,13 +51,7 @@ class Translator implements TranslatorInterface
 
     public static function lang()
     {
-        // TODO: Configure, session, app.php defaultLocale ?
-        $lang = ini_get('intl.default_locale');
-        if($lang === null) {
-            $lang = 'eng';
-        }
-
-        return $lang;
+        return I18n::locale();
     }
 
     public static function domains($domains = null)
