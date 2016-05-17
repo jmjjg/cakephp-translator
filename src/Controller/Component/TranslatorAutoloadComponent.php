@@ -33,15 +33,15 @@ class TranslatorAutoloadComponent extends Component
             $pluginName = ltrim(Inflector::underscore(Hash::get($Controller->request->params, 'plugin')) . '_', '_');
 
             $this->_domains = array_values(
-                    array_unique(
-                            array(
-                                $pluginName . $controllerName . '_' . $actionName,
-                                $controllerName . '_' . $actionName,
-                                $pluginName . $controllerName,
-                                $controllerName,
-                                'default'
-                            )
+                array_unique(
+                    array(
+                        $pluginName . $controllerName . '_' . $actionName,
+                        $controllerName . '_' . $actionName,
+                        $pluginName . $controllerName,
+                        $controllerName,
+                        'default'
                     )
+                )
             );
         }
 
@@ -102,7 +102,6 @@ class TranslatorAutoloadComponent extends Component
         $cache = Cache::read($cacheKey);
 
         if ($cache !== false) {
-            debug( $cache );
             $translator->import($cache);
         }
     }

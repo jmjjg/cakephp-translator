@@ -83,8 +83,23 @@ class TranslatorTest extends TestCase
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
 
-        $result = Translator::__('Some string with {0} {1}', array('other multiple', 'arguments'));
-        $expected = 'Some string with other multiple arguments';
+        Translator::domains('groups');
+        $result = Translator::__('Group.name');
+        $expected = 'Nom du groupe';
+        $this->assertEquals($expected, $result);
+
+        Translator::domains(['groups', 'groups_index']);
+        $result = Translator::__('Group.name');
+        $expected = 'Nom du groupe';
+        $this->assertEquals($expected, $result);
+
+        Translator::domains(['groups_index', 'groups']);
+        $result = Translator::__('Group.name');
+        $expected = 'Nom';
+        $this->assertEquals($expected, $result);
+
+        $result = Translator::__('Some string with {0} {1}', array('multiple', 'arguments'));
+        $expected = 'Some string with multiple arguments';
         $this->assertEquals($expected, $result);
     }
 
