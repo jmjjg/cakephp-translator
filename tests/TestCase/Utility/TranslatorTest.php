@@ -57,7 +57,7 @@ class TranslatorTest extends TestCase
     {
         $domains = 'groups_index';
         $result = Translator::domains((array) $domains);
-        $expected = array('groups_index');
+        $expected = ['groups_index'];
         $this->assertEquals($expected, $result);
 
         $result = Translator::domains();
@@ -81,7 +81,7 @@ class TranslatorTest extends TestCase
         $this->assertEquals('Supprimer', Translator::__('/Groups/delete/{{id}}'));
         $this->assertEquals('groups.po', Translator::__('filename'));
 
-        $result = Translator::__('Some string with {0} {1}', array('multiple', 'arguments'));
+        $result = Translator::__('Some string with {0} {1}', ['multiple', 'arguments']);
         $expected = 'Some string with multiple arguments';
         $this->assertEquals($expected, $result);
     }
@@ -132,16 +132,16 @@ class TranslatorTest extends TestCase
         Translator::__('Some string with {0}', ['arguments']);
 
         $result = Translator::export();
-        $expected = array(
-            'fr_FR' => array(
-                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => array(
-                    '__' => array(
+        $expected = [
+            'fr_FR' => [
+                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => [
+                    '__' => [
                         'name' => 'Nom',
                         'Some string with {0}' => 'Some string with {0}',
-                    )
-                )
-            )
-        );
+                    ]
+                ]
+            ]
+        ];
         $this->assertEquals($expected, $result);
     }
 
@@ -152,15 +152,15 @@ class TranslatorTest extends TestCase
      */
     public function testImport()
     {
-        $cache = array(
-            'fr_FR' => array(
-                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => array(
-                    '__' => array(
+        $cache = [
+            'fr_FR' => [
+                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => [
+                    '__' => [
                         'name' => 'Nom',
-                    )
-                )
-            )
-        );
+                    ]
+                ]
+            ]
+        ];
         Translator::import($cache);
         Translator::domains(['groups_index', 'groups']);
         $result = Translator::__('name');
@@ -175,17 +175,17 @@ class TranslatorTest extends TestCase
      */
     public function testMultipleImport()
     {
-        $cache = array(
-            'fr_FR' => array(
-                'a:1:{i:0;s:13:"groups_index2";}' => array(
-                    '__' => array(
+        $cache = [
+            'fr_FR' => [
+                'a:1:{i:0;s:13:"groups_index2";}' => [
+                    '__' => [
                         'Group.name' => 'Nom',
-                    )
-                )
-            )
-        );
+                    ]
+                ]
+            ]
+        ];
         Translator::import($cache);
-        Translator::import(array());
+        Translator::import([]);
         Translator::domains('groups_index2');
         $result = Translator::__('Group.name');
         $expected = 'Nom';

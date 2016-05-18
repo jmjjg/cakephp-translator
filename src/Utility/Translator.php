@@ -18,9 +18,9 @@ class Translator implements TranslatorInterface
 
     protected static $_domainsKey = null;
 
-    protected static $_domains = array();
+    protected static $_domains = [];
 
-    protected static $_cache = array();
+    protected static $_cache = [];
 
     protected static $_tainted = false;
 
@@ -59,8 +59,8 @@ class Translator implements TranslatorInterface
         $instance = self::getInstance();
 
         $instance::$_domainsKey = null;
-        $instance::$_domains = array();
-        $instance::$_cache = array();
+        $instance::$_domains = [];
+        $instance::$_cache = [];
         $instance::$_tainted = false;
     }
 
@@ -106,15 +106,15 @@ class Translator implements TranslatorInterface
         else {
             foreach ($cache as $lang => $keys) {
                 if (!isset($instance::$_cache[$lang])) {
-                    $instance::$_cache[$lang] = array();
+                    $instance::$_cache[$lang] = [];
                 }
                 foreach ($keys as $key => $methods) {
                     if (!isset($instance::$_cache[$lang][$key])) {
-                        $instance::$_cache[$lang][$key] = array();
+                        $instance::$_cache[$lang][$key] = [];
                     }
                     foreach ($methods as $method => $messages) {
                         if (!isset($instance::$_cache[$lang][$key][$method])) {
-                            $instance::$_cache[$lang][$key][$method] = array();
+                            $instance::$_cache[$lang][$key][$method] = [];
                         }
                         $instance::$_cache[$lang][$key][$method] = array_merge(
                                 $instance::$_cache[$lang][$key][$method], $messages
@@ -139,13 +139,13 @@ class Translator implements TranslatorInterface
         $lang = $instance::lang();
 
         if (!isset($instance::$_cache[$lang])) {
-            $instance::$_cache[$lang] = array();
+            $instance::$_cache[$lang] = [];
         }
         if (!isset($instance::$_cache[$lang][$instance::$_domainsKey])) {
-            $instance::$_cache[$lang][$instance::$_domainsKey] = array();
+            $instance::$_cache[$lang][$instance::$_domainsKey] = [];
         }
         if (!isset($instance::$_cache[$lang][$instance::$_domainsKey][$method])) {
-            $instance::$_cache[$lang][$instance::$_domainsKey][$method] = array();
+            $instance::$_cache[$lang][$instance::$_domainsKey][$method] = [];
         }
 
         $instance::$_cache[$lang][$instance::$_domainsKey][$method][$singular] = $translation;

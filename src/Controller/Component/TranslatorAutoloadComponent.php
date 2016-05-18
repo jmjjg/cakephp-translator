@@ -14,11 +14,11 @@ class TranslatorAutoloadComponent extends Component
 {
     public $name = 'TranslatorAutoload';
 
-    public $settings = array();
+    public $settings = [];
 
-    public $defaultSettings = array(
+    public $defaultSettings = [
         'translatorClass' => '\\Translator\\Utility\\Translator'
-    );
+    ];
     protected $_domains = null;
     protected $_cacheKey = null;
     protected $_translator = null;
@@ -34,13 +34,13 @@ class TranslatorAutoloadComponent extends Component
 
             $this->_domains = array_values(
                 array_unique(
-                    array(
+                    [
                         $pluginName . $controllerName . '_' . $actionName,
                         $controllerName . '_' . $actionName,
                         $pluginName . $controllerName,
                         $controllerName,
                         'default'
-                    )
+                    ]
                 )
             );
         }
