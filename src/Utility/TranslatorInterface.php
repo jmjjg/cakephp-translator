@@ -52,14 +52,15 @@ interface TranslatorInterface
     /**
      * Import cached translations, merging previously set cached entries.
      *
-     * @param array $cache
+     * @param array $cache The cache content to import
+     * @return void
      */
     public static function import(array $cache);
 
     /**
      * Returns true if new translations have been inserted into the cache.
      *
-     * @return boolean
+     * @return bool
      */
     public static function tainted();
 
@@ -75,4 +76,3 @@ interface TranslatorInterface
      */
     public static function __($singular, array $tokens_values = []);
 }
-?>

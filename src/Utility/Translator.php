@@ -75,8 +75,7 @@ class Translator implements TranslatorInterface
 
         if ($domains === null) {
             return $instance::$_domains;
-        }
-        else {
+        } else {
             $instance::$_domains = array_values((array)$domains);
             $instance::$_domainsKey = serialize($instance::$_domains);
 
@@ -102,8 +101,7 @@ class Translator implements TranslatorInterface
 
         if (empty($instance::$_cache)) {
             $instance::$_cache = $cache;
-        }
-        else {
+        } else {
             foreach ($cache as $lang => $keys) {
                 if (!isset($instance::$_cache[$lang])) {
                     $instance::$_cache[$lang] = [];
@@ -117,7 +115,8 @@ class Translator implements TranslatorInterface
                             $instance::$_cache[$lang][$key][$method] = [];
                         }
                         $instance::$_cache[$lang][$key][$method] = array_merge(
-                                $instance::$_cache[$lang][$key][$method], $messages
+                            $instance::$_cache[$lang][$key][$method],
+                            $messages
                         );
                     }
                 }
@@ -170,14 +169,13 @@ class Translator implements TranslatorInterface
 
         if ($instance::_issetTranslation(__FUNCTION__, $key)) {
             $message = $instance::_getTranslation(__FUNCTION__, $key);
-        }
-        else {
+        } else {
             $domains = $instance::domains();
             $count = count($domains);
             $message = $key;
 
-            for ($i = 0; $i < $count && ( $message === $key ); $i++) {
-                $message = I18n::translator( $domains[$i] )->translate($key);
+            for ($i = 0; $i < $count && ($message === $key); $i++) {
+                $message = I18n::translator($domains[$i])->translate($key);
             }
 
             if ($message === $key) {
@@ -198,4 +196,3 @@ class Translator implements TranslatorInterface
         return $instance::$_formatter->format($instance::lang(), $message, $tokens_values);
     }
 }
-?>

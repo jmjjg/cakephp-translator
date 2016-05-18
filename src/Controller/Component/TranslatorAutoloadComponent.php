@@ -25,7 +25,7 @@ class TranslatorAutoloadComponent extends Component
 
     public function domains()
     {
-        $Controller =  $this->_registry->getController();
+        $Controller = $this->_registry->getController();
 
         if ($this->_domains === null) {
             $controllerName = Inflector::underscore(Hash::get($Controller->request->params, 'controller'));
@@ -66,12 +66,12 @@ class TranslatorAutoloadComponent extends Component
         if ($this->_translator === null) {
             $translatorClass = Hash::get($this->settings, 'translatorClass');
 
-            if(false === class_exists($translatorClass)) {
+            if (false === class_exists($translatorClass)) {
                 $msg = sprintf(__d('cake_dev', 'Missing utility class %s'), $translatorClass);
                 throw new \RuntimeException($msg, 500);
             }
 
-            if(false === in_array('Translator\Utility\TranslatorInterface', class_implements($translatorClass))) {
+            if (false === in_array('Translator\Utility\TranslatorInterface', class_implements($translatorClass))) {
                 $msg = sprintf(__d('cake_dev', 'Utility class %s does not implement Translator\Utility\TranslatorInterface'), $translatorClass);
                 throw new \RuntimeException($msg, 500);
             }
@@ -127,4 +127,3 @@ class TranslatorAutoloadComponent extends Component
         $this->save();
     }
 }
-?>
