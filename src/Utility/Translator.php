@@ -8,6 +8,7 @@ use Aura\Intl\FormatterLocator;
 use Cake\I18n\Formatter\IcuFormatter;
 use Cake\I18n\Formatter\SprintfFormatter;
 use Cake\I18n\I18n;
+use Translator\Utility\Storage;
 use Translator\Utility\TranslatorInterface;
 
 /**
@@ -28,6 +29,11 @@ class Translator implements TranslatorInterface
 
     protected static $_formatter = null;
 
+    /**
+     * Protected constructor to force the usage of the static getInstance() method.
+     *
+     * @return Translator\Utility\Translator
+     */
     protected function __construct()
     {
         self::$_this = $this;
@@ -140,20 +146,16 @@ class Translator implements TranslatorInterface
             $instance::$_cache = $cache;
         } else {
             foreach ($cache as $lang => $keys) {
-                if (!isset($instance::$_cache[$lang])) {
-                    $instance::$_cache[$lang] = [];
-                }
                 foreach ($keys as $key => $methods) {
-                    if (!isset($instance::$_cache[$lang][$key])) {
-                        $instance::$_cache[$lang][$key] = [];
-                    }
                     foreach ($methods as $method => $messages) {
-                        if (!isset($instance::$_cache[$lang][$key][$method])) {
-                            $instance::$_cache[$lang][$key][$method] = [];
-                        }
-                        $instance::$_cache[$lang][$key][$method] = array_merge(
-                            $instance::$_cache[$lang][$key][$method],
-                            $messages
+                        $path = [$lang, $key, $method];
+                        $instance::$_cache = Storage::insert(
+                            $instance::$_cache,
+                            $path,
+                            array_merge(
+                                (array)Storage::get($instance::$_cache, $path),
+                                $messages
+                            )
                         );
                     }
                 }
@@ -202,50 +204,23 @@ class Translator implements TranslatorInterface
     }
 
     /**
-     * Checks the cache for the method name and key (using the current language
-     * and domains keys).
-     *
-     * @param string $method The method name
-     * @param string $singular The message key
-     * @return bool
-     */
-    protected static function _issetTranslation($method, $singular)
-    {
-        $instance = self::getInstance();
-        return isset($instance::$_cache[$instance::lang()][$instance::$_domainsKey][$method][$singular]);
-    }
-
-    /**
-     * Returns the cached translation for the method name and key (using the
-     * current language and domains keys).
-     *
-     * @param string $method The method name
-     * @param string $singular The message key
-     * @return string
-     */
-    protected static function _getTranslation($method, $singular)
-    {
-        $instance = self::getInstance();
-        return $instance::$_cache[$instance::lang()][$instance::$_domainsKey][$method][$singular];
-    }
-
-    /**
      * {@inheritdoc}
      *
      * @see __()
      *
-     * @param string $singular The message key.
-     * @param array $tokens_values Token values to interpolate into the
+     * @param string $key The message key.
+     * @param array $values Token values to interpolate into the
      * message.
      * @return string The translated message with tokens replaced.
      */
-    public static function __($key, array $tokens_values = [])
+    public static function __($key, array $values = [])
     {
         $instance = self::getInstance();
         $key = (string)$key;
 
-        if ($instance::_issetTranslation(__FUNCTION__, $key)) {
-            $message = $instance::_getTranslation(__FUNCTION__, $key);
+        $path = [$instance::lang(), $instance::$_domainsKey, __FUNCTION__, $key];
+        if (Storage::exists($instance::$_cache, $path)) {
+            $message = Storage::get($instance::$_cache, $path);
         } else {
             $domains = $instance::domains();
             $count = count($domains);
@@ -259,17 +234,19 @@ class Translator implements TranslatorInterface
                 $message = I18n::translator()->translate($key);
             }
 
-            $instance::_setTranslation(__FUNCTION__, $key, $message);
+            $path = [$instance::lang(), $instance::$_domainsKey, __FUNCTION__, $key];
+            $instance::$_cache = Storage::insert($instance::$_cache, $path, $message);
+            $instance::$_tainted = true;
         }
 
         // C/P from CakePHP's Translator::translate()
         // are there token replacement values?
-        if (! $tokens_values) {
+        if (! $values) {
             // no, return the message string as-is
             return $message;
         }
 
         // run message string through formatter to replace tokens with values
-        return $instance::$_formatter->format($instance::lang(), $message, $tokens_values);
+        return $instance::$_formatter->format($instance::lang(), $message, $values);
     }
 }

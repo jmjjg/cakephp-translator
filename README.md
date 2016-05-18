@@ -7,6 +7,6 @@ ini_set('intl.default_locale', 'fr_FR');
 ```
 
 ```
-sudo bash -c "( sudo bin/cake orm_cache clear ; rm logs/*.log ; rm -r logs/quality ; find tmp -type f ! -name 'empty' -exec rm {} \; )"
+sudo bash -c "( rm -rf logs/quality ; for dir in logs tmp; do find $dir -type f ! -name 'empty' -exec rm {} \;; done )"
 sudo -u apache ant quality -f plugins/Translator/vendor/Jenkins/build.xml
 ```

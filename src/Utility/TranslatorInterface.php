@@ -70,9 +70,9 @@ interface TranslatorInterface
      * @see __()
      *
      * @param string $singular The message key.
-     * @param array $tokens_values Token values to interpolate into the
+     * @param array $values Token values to interpolate into the
      * message.
      * @return string The translated message with tokens replaced.
      */
-    public static function __($singular, array $tokens_values = []);
+    public static function __($singular, array $values = []);
 }

@@ -3,7 +3,6 @@
  * Source code for the TranslatorTest unit test class from the Translator CakePHP 3 plugin.
  *
  * @author Christian Buffin
- * @license http://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Translator\Test\TestCase\Utility;
 
@@ -175,20 +174,38 @@ class TranslatorTest extends TestCase
      */
     public function testMultipleImport()
     {
-        $cache = [
+        $cache1 = [
             'fr_FR' => [
                 'a:1:{i:0;s:13:"groups_index2";}' => [
                     '__' => [
-                        'Group.name' => 'Nom',
+                        'Group.name' => 'Nom'
                     ]
                 ]
             ]
         ];
-        Translator::import($cache);
-        Translator::import([]);
+        $cache2 = [
+            'fr_FR' => [
+                'a:1:{i:0;s:13:"groups_index2";}' => [
+                    '__' => [
+                        'Group.id' => 'Id'
+                    ]
+                ]
+            ]
+        ];
+        Translator::import($cache1);
+        Translator::import($cache2);
         Translator::domains('groups_index2');
-        $result = Translator::__('Group.name');
-        $expected = 'Nom';
+        $result = Translator::export();
+        $expected = [
+            'fr_FR' => [
+                'a:1:{i:0;s:13:"groups_index2";}' => [
+                    '__' => [
+                        'Group.name' => 'Nom',
+                        'Group.id' => 'Id'
+                    ]
+                ]
+            ]
+        ];
         $this->assertEquals($expected, $result);
     }
 }
