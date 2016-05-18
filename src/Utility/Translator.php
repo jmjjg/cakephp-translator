@@ -44,6 +44,11 @@ class Translator implements TranslatorInterface
         self::$_formatter = new IcuFormatter();
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return TranslatorInterface
+     */
     public static function getInstance()
     {
         if (self::$_this === null) {
@@ -54,6 +59,11 @@ class Translator implements TranslatorInterface
         return self::$_this;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return void
+     */
     public static function reset()
     {
         $instance = self::getInstance();
@@ -64,11 +74,22 @@ class Translator implements TranslatorInterface
         $instance::$_tainted = false;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
     public static function lang()
     {
         return I18n::locale();
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param string|array $domains A (list of) domain name(s)
+     * @return array
+     */
     public static function domains($domains = null)
     {
         $instance = self::getInstance();
@@ -83,18 +104,34 @@ class Translator implements TranslatorInterface
         }
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
     public static function domainKey()
     {
         $instance = self::getInstance();
         return $instance::$_domainKey;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return array
+     */
     public static function export()
     {
         $instance = self::getInstance();
         return $instance::$_cache;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param array $cache The cache content to import
+     * @return void
+     */
     public static function import(array $cache)
     {
         $instance = self::getInstance();
@@ -124,12 +161,26 @@ class Translator implements TranslatorInterface
         }
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool
+     */
     public static function tainted()
     {
         $instance = self::getInstance();
         return $instance::$_tainted;
     }
 
+    /**
+     * Stores the translation for the method name and key in the cache (using the
+     * current language and domains keys) and marks the cache as tainted.
+     *
+     * @param string $method The method name
+     * @param string $singular The message key
+     * @param string $translation The translation to store
+     * @return void
+     */
     protected static function _setTranslation($method, $singular, $translation)
     {
         $instance = self::getInstance();
@@ -150,18 +201,44 @@ class Translator implements TranslatorInterface
         $instance::$_cache[$lang][$instance::$_domainsKey][$method][$singular] = $translation;
     }
 
+    /**
+     * Checks the cache for the method name and key (using the current language
+     * and domains keys).
+     *
+     * @param string $method The method name
+     * @param string $singular The message key
+     * @return bool
+     */
     protected static function _issetTranslation($method, $singular)
     {
         $instance = self::getInstance();
         return isset($instance::$_cache[$instance::lang()][$instance::$_domainsKey][$method][$singular]);
     }
 
+    /**
+     * Returns the cached translation for the method name and key (using the
+     * current language and domains keys).
+     *
+     * @param string $method The method name
+     * @param string $singular The message key
+     * @return string
+     */
     protected static function _getTranslation($method, $singular)
     {
         $instance = self::getInstance();
         return $instance::$_cache[$instance::lang()][$instance::$_domainsKey][$method][$singular];
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see __()
+     *
+     * @param string $singular The message key.
+     * @param array $tokens_values Token values to interpolate into the
+     * message.
+     * @return string The translated message with tokens replaced.
+     */
     public static function __($key, array $tokens_values = [])
     {
         $instance = self::getInstance();
