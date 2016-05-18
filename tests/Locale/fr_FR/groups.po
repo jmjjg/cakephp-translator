@@ -5,5 +5,17 @@
 
 # ==============================================================================
 
-msgid "Group.name"
-msgstr "Nom du groupe"
+msgid "id"
+msgstr "Id"
+
+msgid "name"
+msgstr "Nom"
+
+msgid "created"
+msgstr "Création"
+
+msgid "modified"
+msgstr "Modifié"
+
+msgid "filename"
+msgstr "groups.po"

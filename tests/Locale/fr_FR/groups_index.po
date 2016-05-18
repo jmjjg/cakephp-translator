@@ -5,5 +5,14 @@
 
 # ==============================================================================
 
-msgid "Group.name"
-msgstr "Nom"
+msgid "/Groups/view/{{id}}"
+msgstr "Voir"
+
+msgid "/Groups/edit/{{id}}"
+msgstr "Modifier"
+
+msgid "/Groups/delete/{{id}}"
+msgstr "Supprimer"
+
+msgid "filename"
+msgstr "groups_index.po"

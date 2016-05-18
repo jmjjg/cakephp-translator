@@ -4,7 +4,10 @@
  */
 namespace Translator\Utility;
 
-use Cake\Core\Configure;
+use Aura\Intl\FormatterLocator;
+//use Cake\Core\Configure;
+use Cake\I18n\Formatter\IcuFormatter;
+use Cake\I18n\Formatter\SprintfFormatter;
 use Cake\I18n\I18n;
 use Translator\Utility\TranslatorInterface;
 
@@ -26,9 +29,22 @@ class Translator implements TranslatorInterface
 
     protected static $_this = null;
 
+    protected static $_formatter = null;
+
     protected function __construct()
     {
         self::$_this = $this;
+
+        // TODO
+        /*$formatter = new FormatterLocator([
+            'sprintf' => function () {
+                return new SprintfFormatter;
+            },
+            'default' => function () {
+                return new IcuFormatter;
+            },
+        ]);*/
+        self::$_formatter = new IcuFormatter();
     }
 
     public static function getInstance()
@@ -43,10 +59,12 @@ class Translator implements TranslatorInterface
 
     public static function reset()
     {
-        self::$_domainsKey = null;
-        self::$_domains = array();
-        self::$_cache = array();
-        self::$_tainted = false;
+        $instance = self::getInstance();
+
+        $instance::$_domainsKey = null;
+        $instance::$_domains = array();
+        $instance::$_cache = array();
+        $instance::$_tainted = false;
     }
 
     public static function lang()
@@ -56,47 +74,53 @@ class Translator implements TranslatorInterface
 
     public static function domains($domains = null)
     {
+        $instance = self::getInstance();
+
         if ($domains === null) {
-            return self::$_domains;
+            return $instance::$_domains;
         }
         else {
-            self::$_domains = array_values((array) $domains);
-            self::$_domainsKey = serialize(self::$_domains);
+            $instance::$_domains = array_values((array) $domains);
+            $instance::$_domainsKey = serialize($instance::$_domains);
 
-            return self::$_domains;
+            return $instance::$_domains;
         }
     }
 
     public static function domainKey()
     {
-        return self::$_domainKey;
+        $instance = self::getInstance();
+        return $instance::$_domainKey;
     }
 
     public static function export()
     {
-        return self::$_cache;
+        $instance = self::getInstance();
+        return $instance::$_cache;
     }
 
     public static function import(array $cache)
     {
-        if (empty(self::$_cache)) {
-            self::$_cache = $cache;
+        $instance = self::getInstance();
+
+        if (empty($instance::$_cache)) {
+            $instance::$_cache = $cache;
         }
         else {
             foreach ($cache as $lang => $keys) {
-                if (!isset(self::$_cache[$lang])) {
-                    self::$_cache[$lang] = array();
+                if (!isset($instance::$_cache[$lang])) {
+                    $instance::$_cache[$lang] = array();
                 }
                 foreach ($keys as $key => $methods) {
-                    if (!isset(self::$_cache[$lang][$key])) {
-                        self::$_cache[$lang][$key] = array();
+                    if (!isset($instance::$_cache[$lang][$key])) {
+                        $instance::$_cache[$lang][$key] = array();
                     }
                     foreach ($methods as $method => $messages) {
-                        if (!isset(self::$_cache[$lang][$key][$method])) {
-                            self::$_cache[$lang][$key][$method] = array();
+                        if (!isset($instance::$_cache[$lang][$key][$method])) {
+                            $instance::$_cache[$lang][$key][$method] = array();
                         }
-                        self::$_cache[$lang][$key][$method] = array_merge(
-                                self::$_cache[$lang][$key][$method], $messages
+                        $instance::$_cache[$lang][$key][$method] = array_merge(
+                                $instance::$_cache[$lang][$key][$method], $messages
                         );
                     }
                 }
@@ -106,47 +130,52 @@ class Translator implements TranslatorInterface
 
     public static function tainted()
     {
-        return self::$_tainted;
+        $instance = self::getInstance();
+        return $instance::$_tainted;
     }
 
     protected static function _setTranslation($method, $singular, $translation)
     {
-        self::$_tainted = true;
+        $instance = self::getInstance();
+        $instance::$_tainted = true;
 
-        $lang = self::lang();
+        $lang = $instance::lang();
 
-        if (!isset(self::$_cache[$lang])) {
-            self::$_cache[$lang] = array();
+        if (!isset($instance::$_cache[$lang])) {
+            $instance::$_cache[$lang] = array();
         }
-        if (!isset(self::$_cache[$lang][self::$_domainsKey])) {
-            self::$_cache[$lang][self::$_domainsKey] = array();
+        if (!isset($instance::$_cache[$lang][$instance::$_domainsKey])) {
+            $instance::$_cache[$lang][$instance::$_domainsKey] = array();
         }
-        if (!isset(self::$_cache[$lang][self::$_domainsKey][$method])) {
-            self::$_cache[$lang][self::$_domainsKey][$method] = array();
+        if (!isset($instance::$_cache[$lang][$instance::$_domainsKey][$method])) {
+            $instance::$_cache[$lang][$instance::$_domainsKey][$method] = array();
         }
 
-        self::$_cache[$lang][self::$_domainsKey][$method][$singular] = $translation;
+        $instance::$_cache[$lang][$instance::$_domainsKey][$method][$singular] = $translation;
     }
 
     protected static function _issetTranslation($method, $singular)
     {
-        return isset(self::$_cache[self::lang()][self::$_domainsKey][$method][$singular]);
+        $instance = self::getInstance();
+        return isset($instance::$_cache[$instance::lang()][$instance::$_domainsKey][$method][$singular]);
     }
 
     protected static function _getTranslation($method, $singular)
     {
-        return self::$_cache[self::lang()][self::$_domainsKey][$method][$singular];
+        $instance = self::getInstance();
+        return $instance::$_cache[$instance::lang()][$instance::$_domainsKey][$method][$singular];
     }
 
     public static function __($key, array $tokens_values = [])
     {
+        $instance = self::getInstance();
         $key = (string)$key;
 
-        if (self::_issetTranslation(__FUNCTION__, $key)) {
-            $message = self::_getTranslation(__FUNCTION__, $key);
+        if ($instance::_issetTranslation(__FUNCTION__, $key)) {
+            $message = $instance::_getTranslation(__FUNCTION__, $key);
         }
         else {
-            $domains = self::domains();
+            $domains = $instance::domains();
             $count = count($domains);
             $message = $key;
 
@@ -157,9 +186,9 @@ class Translator implements TranslatorInterface
             if ($message === $key) {
                 $message = I18n::translator()->translate($key);
             }
-        }
 
-        self::_setTranslation(__FUNCTION__, $key, $message);
+            $instance::_setTranslation(__FUNCTION__, $key, $message);
+        }
 
         // C/P from CakePHP's Translator::translate()
         // are there token replacement values?
@@ -169,7 +198,7 @@ class Translator implements TranslatorInterface
         }
 
         // run message string through formatter to replace tokens with values
-        return I18n::translator()->translate($message, $tokens_values);
+        return $instance::$_formatter->format($instance::lang(), $message, $tokens_values);
     }
 }
 ?>

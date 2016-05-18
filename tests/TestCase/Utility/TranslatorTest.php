@@ -46,11 +46,6 @@ class TranslatorTest extends TestCase
         $result = Translator::lang();
         $expected = 'fr_FR';
         $this->assertEquals($expected, $result);
-
-//        Configure::write('Config.language', 'eng');
-//        $result = Translator::lang();
-//        $expected = 'eng';
-//        $this->assertEquals($expected, $result);
     }
 
     /**
@@ -72,31 +67,19 @@ class TranslatorTest extends TestCase
     /**
      * Test of the Translator::__() method.
      *
-     * @todo
-     *
      * @covers Translator\Utility\Translator::__
      */
     public function testUnderscore()
     {
-        Translator::domains('groups_index');
-        $result = Translator::__('Group.name');
-        $expected = 'Nom';
-        $this->assertEquals($expected, $result);
-
-        Translator::domains('groups');
-        $result = Translator::__('Group.name');
-        $expected = 'Nom du groupe';
-        $this->assertEquals($expected, $result);
+        Translator::domains(['groups_index', 'groups']);
+        $this->assertEquals('Nom', Translator::__('name'));
+        $this->assertEquals('Supprimer', Translator::__('/Groups/delete/{{id}}'));
+        $this->assertEquals('groups_index.po', Translator::__('filename'));
 
         Translator::domains(['groups', 'groups_index']);
-        $result = Translator::__('Group.name');
-        $expected = 'Nom du groupe';
-        $this->assertEquals($expected, $result);
-
-        Translator::domains(['groups_index', 'groups']);
-        $result = Translator::__('Group.name');
-        $expected = 'Nom';
-        $this->assertEquals($expected, $result);
+        $this->assertEquals('Nom', Translator::__('name'));
+        $this->assertEquals('Supprimer', Translator::__('/Groups/delete/{{id}}'));
+        $this->assertEquals('groups.po', Translator::__('filename'));
 
         $result = Translator::__('Some string with {0} {1}', array('multiple', 'arguments'));
         $expected = 'Some string with multiple arguments';
@@ -110,10 +93,10 @@ class TranslatorTest extends TestCase
      */
     public function testTainted()
     {
-        Translator::domains('groups_index');
+        Translator::domains(['groups_index', 'groups']);
         $this->assertFalse(Translator::tainted());
 
-        Translator::__('Group.name');
+        Translator::__('name');
         $this->assertTrue(Translator::tainted());
     }
 
@@ -125,14 +108,14 @@ class TranslatorTest extends TestCase
      */
     public function testReset()
     {
-        Translator::domains('groups_index');
-        $result = Translator::__('Group.name');
+        Translator::domains(['groups_index', 'groups']);
+        $result = Translator::__('name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
 
         Translator::reset();
-        $result = Translator::__('Group.name');
-        $expected = 'Group.name';
+        $result = Translator::__('name');
+        $expected = 'name';
         $this->assertEquals($expected, $result);
     }
 
@@ -143,17 +126,17 @@ class TranslatorTest extends TestCase
      */
     public function testExport()
     {
-        Translator::domains('groups_index');
+        Translator::domains(['groups_index', 'groups']);
 
-        Translator::__('Group.name');
+        Translator::__('name');
         Translator::__('Some string with {0}', ['arguments']);
 
         $result = Translator::export();
         $expected = array(
             'fr_FR' => array(
-                'a:1:{i:0;s:12:"groups_index";}' => array(
+                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => array(
                     '__' => array(
-                        'Group.name' => 'Nom',
+                        'name' => 'Nom',
                         'Some string with {0}' => 'Some string with {0}',
                     )
                 )
@@ -171,16 +154,16 @@ class TranslatorTest extends TestCase
     {
         $cache = array(
             'fr_FR' => array(
-                'a:1:{i:0;s:13:"groups_index2";}' => array(
+                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => array(
                     '__' => array(
-                        'Group.name' => 'Nom',
+                        'name' => 'Nom',
                     )
                 )
             )
         );
         Translator::import($cache);
-        Translator::domains('groups_index2');
-        $result = Translator::__('Group.name');
+        Translator::domains(['groups_index', 'groups']);
+        $result = Translator::__('name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
     }
