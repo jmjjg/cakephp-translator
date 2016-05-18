@@ -77,7 +77,7 @@ class Translator implements TranslatorInterface
             return $instance::$_domains;
         }
         else {
-            $instance::$_domains = array_values((array) $domains);
+            $instance::$_domains = array_values((array)$domains);
             $instance::$_domainsKey = serialize($instance::$_domains);
 
             return $instance::$_domains;

@@ -56,7 +56,7 @@ class TranslatorTest extends TestCase
     public function testDomains()
     {
         $domains = 'groups_index';
-        $result = Translator::domains((array) $domains);
+        $result = Translator::domains((array)$domains);
         $expected = ['groups_index'];
         $this->assertEquals($expected, $result);
 
