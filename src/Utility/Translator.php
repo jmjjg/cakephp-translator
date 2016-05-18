@@ -5,7 +5,6 @@
 namespace Translator\Utility;
 
 use Aura\Intl\FormatterLocator;
-//use Cake\Core\Configure;
 use Cake\I18n\Formatter\IcuFormatter;
 use Cake\I18n\Formatter\SprintfFormatter;
 use Cake\I18n\I18n;
@@ -13,8 +12,6 @@ use Translator\Utility\TranslatorInterface;
 
 /**
  * The Translator class...
- *
- * @todo interface
  */
 class Translator implements TranslatorInterface
 {
