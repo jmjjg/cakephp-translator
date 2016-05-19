@@ -13,9 +13,10 @@ namespace Translator\Utility;
 class Storage
 {
     /**
+     * Checks if a path exists in a given multi-dimensional array.
      *
      * @param array $data The data to check
-     * @param array $path The path keys to check
+     * @param array $path A path made of array key names
      * @return bool
      */
     public static function exists(array &$data, array $path)
@@ -37,10 +38,12 @@ class Storage
     }
 
     /**
+     * Inserts a value at a given path in a given multi-dimensional array
+     * and returns it.
      *
      * @param array $data The data to insert to value into
-     * @param array $path The path keys to check
-     * @param mixed $value The value to insert
+     * @param array $path A path made of array key names
+     * @param mixed $value A value to insert
      * @return array
      */
     public static function insert(array $data, array $path, $value)
@@ -63,9 +66,10 @@ class Storage
     }
 
     /**
+     * Returns the value at a given path in a multi-dimensional array.
      *
      * @param array $data The data to get the value from
-     * @param array $path The path keys to check
+     * @param array $path A path made of array key names
      * @param mixed $default The default value to return if the path keys do not exist
      * @return mixed
      */

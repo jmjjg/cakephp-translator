@@ -10,19 +10,61 @@ use Cake\Event\Event;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 
+/**
+ * The TranslatorAutoloadComponent class automatically loads and saves in the cache
+ * the latest translations used for the current URL's domains.
+ */
 class TranslatorAutoloadComponent extends Component
 {
+    /**
+     * Name of the component.
+     *
+     * @var string
+     */
     public $name = 'TranslatorAutoload';
 
+    /**
+     * Actual settings.
+     *
+     * @var array
+     */
     public $settings = [];
 
+    /**
+     * Default settings.
+     *
+     * @var array
+     */
     public $defaultSettings = [
         'translatorClass' => '\\Translator\\Utility\\Translator'
     ];
+
+    /**
+     * The list of domains to send to the translator class.
+     *
+     * @var array
+     */
     protected $_domains = null;
+
+    /**
+     * The cache key to load and save the cache.
+     *
+     * @var string
+     */
     protected $_cacheKey = null;
+
+    /**
+     * The instance of the translator class.
+     *
+     * @var TranslatorInterface
+     */
     protected $_translator = null;
 
+    /**
+     * Returns an array of domains to be checked for the current URL.
+     *
+     * @return array
+     */
     public function domains()
     {
         $Controller = $this->_registry->getController();
@@ -48,10 +90,15 @@ class TranslatorAutoloadComponent extends Component
         return $this->_domains;
     }
 
+    /**
+     * Returns the cache key to be used for the current URL.
+     *
+     * @return string
+     */
     public function cacheKey()
     {
         if ($this->_cacheKey === null) {
-            $Controller =  $this->_registry->getController();
+            $Controller = $this->_registry->getController();
 
             $pluginName = ltrim(Inflector::camelize(Hash::get($Controller->request->params, 'plugin')) . '.', '.');
 
@@ -61,6 +108,12 @@ class TranslatorAutoloadComponent extends Component
         return $this->_cacheKey;
     }
 
+    /**
+     * Returns the translator object, initializing it if needed.
+     *
+     * @return TranslatorInterface
+     * @throws \RuntimeException
+     */
     protected function _translator()
     {
         if ($this->_translator === null) {
@@ -83,6 +136,12 @@ class TranslatorAutoloadComponent extends Component
         return $this->_translator;
     }
 
+    /**
+     * Initialize the component configuration on startup.
+     *
+     * @param array $config The settings set in the controller
+     * @return void
+     */
     public function initialize(array $config)
     {
         parent::initialize($config);
@@ -93,6 +152,11 @@ class TranslatorAutoloadComponent extends Component
         );
     }
 
+    /**
+     * Imports the translation cache for the current domains.
+     *
+     * @return void
+     */
     public function load()
     {
         $translator = $this->_translator();
@@ -106,6 +170,11 @@ class TranslatorAutoloadComponent extends Component
         }
     }
 
+    /**
+     * Exports the translation cache for the current domains.
+     *
+     * @return void
+     */
     public function save()
     {
         $translator = $this->_translator();
@@ -117,11 +186,23 @@ class TranslatorAutoloadComponent extends Component
         }
     }
 
+    /**
+     * Loads the translations for the current domains before rendering the view.
+     *
+     * @param Event $event The event that caused the callback
+     * @return void
+     */
     public function beforeRender(Event $event)
     {
         $this->load();
     }
 
+    /**
+     * Caches the translations for the current domains after rendering the view.
+     *
+     * @param Event $event The event that caused the callback
+     * @return void
+     */
     public function shutdown(Event $event)
     {
         $this->save();
