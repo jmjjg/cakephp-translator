@@ -4,6 +4,10 @@
  */
 namespace Translator\Utility;
 
+/**
+ * The TranslatorInterface defines a singleton that can translate messages based
+ * on language, a list of domains, live-caching, importing and exporting the cache.
+ */
 interface TranslatorInterface
 {
     /**

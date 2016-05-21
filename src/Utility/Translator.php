@@ -17,20 +17,50 @@ use Translator\Utility\TranslatorInterface;
 class Translator implements TranslatorInterface
 {
 
+    /**
+     * The key cache part for the current domains.
+     *
+     * @var string
+     */
     protected static $_domainsKey = null;
 
+    /**
+     * A list of domains to be checked.
+     *
+     * @var array
+     */
     protected static $_domains = [];
 
+    /**
+     * A cache of already translated messages.
+     *
+     * @var array
+     */
     protected static $_cache = [];
 
+    /**
+     * Indicate wether the cache content has changed or not.
+     *
+     * @var bool
+     */
     protected static $_tainted = false;
 
+    /**
+     * A reference to the translator object.
+     *
+     * @var TranslatorInterface
+     */
     protected static $_this = null;
 
+    /**
+     * An instance of the messages formatter.
+     *
+     * @var FormatterInterface
+     */
     protected static $_formatter = null;
 
     /**
-     * Protected constructor to force the usage of the static getInstance() method.
+     * Protected constructor to force the usage of the static getInstance method.
      *
      * @return Translator\Utility\Translator
      */
