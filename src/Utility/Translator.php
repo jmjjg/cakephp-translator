@@ -205,35 +205,6 @@ class Translator implements TranslatorInterface
     }
 
     /**
-     * Stores the translation for the method name and key in the cache (using the
-     * current language and domains keys) and marks the cache as tainted.
-     *
-     * @param string $method The method name
-     * @param string $singular The message key
-     * @param string $translation The translation to store
-     * @return void
-     */
-    protected static function _setTranslation($method, $singular, $translation)
-    {
-        $instance = self::getInstance();
-        $instance::$_tainted = true;
-
-        $lang = $instance::lang();
-
-        if (!isset($instance::$_cache[$lang])) {
-            $instance::$_cache[$lang] = [];
-        }
-        if (!isset($instance::$_cache[$lang][$instance::$_domainsKey])) {
-            $instance::$_cache[$lang][$instance::$_domainsKey] = [];
-        }
-        if (!isset($instance::$_cache[$lang][$instance::$_domainsKey][$method])) {
-            $instance::$_cache[$lang][$instance::$_domainsKey][$method] = [];
-        }
-
-        $instance::$_cache[$lang][$instance::$_domainsKey][$method][$singular] = $translation;
-    }
-
-    /**
      * {@inheritdoc}
      *
      * @see __()
