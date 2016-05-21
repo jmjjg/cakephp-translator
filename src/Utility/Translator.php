@@ -22,7 +22,7 @@ class Translator implements TranslatorInterface
      *
      * @var string
      */
-    protected static $_domainsKey = null;
+    protected static $_domainsKey = 'a:0:{}';
 
     /**
      * A list of domains to be checked.
@@ -104,7 +104,7 @@ class Translator implements TranslatorInterface
     {
         $instance = self::getInstance();
 
-        $instance::$_domainsKey = null;
+        $instance::$_domainsKey = 'a:0:{}';
         $instance::$_domains = [];
         $instance::$_cache = [];
         $instance::$_tainted = false;
