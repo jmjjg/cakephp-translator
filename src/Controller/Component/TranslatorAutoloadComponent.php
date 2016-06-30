@@ -189,6 +189,8 @@ class TranslatorAutoloadComponent extends Component
     /**
      * Loads the translations for the current domains before rendering the view.
      *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
      * @param Event $event The event that caused the callback
      * @return void
      */
@@ -199,6 +201,8 @@ class TranslatorAutoloadComponent extends Component
 
     /**
      * Caches the translations for the current domains after rendering the view.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      *
      * @param Event $event The event that caused the callback
      * @return void

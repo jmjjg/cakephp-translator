@@ -44,7 +44,7 @@ interface TranslatorInterface
      *
      * @return string
      */
-    public static function domainKey();
+    public static function domainsKey();
 
     /**
      * Returns the currently cached translations.

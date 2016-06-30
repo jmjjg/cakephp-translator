@@ -25,14 +25,25 @@ class TranslatorTest extends TestCase
         $this->locales = Configure::read('App.paths.locales');
         $locales = Plugin::classPath('Translator') . DS . '..' . DS . 'tests' . DS . 'Locale' . DS;
         Configure::write('App.paths.locales', $locales);
-
-        Translator::reset();
     }
 
     public function tearDown()
     {
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
+        Translator::reset();
+    }
+
+    /**
+     * Test of the Translator::getInstance() method.
+     *
+     * @covers Translator\Utility\Translator::__construct
+     * @covers Translator\Utility\Translator::getInstance
+     */
+    public function testgetInstance()
+    {
+        $result = Translator::getInstance();
+        $this->assertInstanceOf('Translator\Utility\Translator', $result);
     }
 
     /**
@@ -83,6 +94,11 @@ class TranslatorTest extends TestCase
         $result = Translator::__('Some string with {0} {1}', ['multiple', 'arguments']);
         $expected = 'Some string with multiple arguments';
         $this->assertEquals($expected, $result);
+
+        // Test Storage's live cache
+        $result = Translator::__('Some string with {0} {1}', ['other', 'arguments']);
+        $expected = 'Some string with other arguments';
+        $this->assertEquals($expected, $result);
     }
 
     /**
@@ -99,7 +115,6 @@ class TranslatorTest extends TestCase
         $this->assertTrue(Translator::tainted());
     }
 
-
     /**
      * Test of the Translator::reset() method.
      *
@@ -115,6 +130,24 @@ class TranslatorTest extends TestCase
         Translator::reset();
         $result = Translator::__('name');
         $expected = 'name';
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * Test of the Translator::domainsKey() method.
+     *
+     * @covers Translator\Utility\Translator::domainsKey
+     */
+    public function testDomainsKey()
+    {
+        Translator::domains(['groups_index', 'groups']);
+        $result = Translator::domainsKey();
+        $expected = 'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}';
+        $this->assertEquals($expected, $result);
+
+        Translator::reset();
+        $result = Translator::domainsKey();
+        $expected = 'a:0:{}';
         $this->assertEquals($expected, $result);
     }
 

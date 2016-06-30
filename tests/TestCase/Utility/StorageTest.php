@@ -19,7 +19,7 @@ class StorageTest extends TestCase
     /**
      * Test of the Storage::exists() exists.
      *
-     * @covers Translator\Utility\Storage::insert
+     * @covers Translator\Utility\Storage::exists
      */
     public function testExists()
     {
@@ -33,6 +33,10 @@ class StorageTest extends TestCase
             ]
         ];
 
+        // 1. Empty path
+        $this->assertFalse(Storage::exists($data, []));
+
+        // Normal tests
         $keys1 = ['fr_FR', 'a:3:{i:0;s:12:"groups_index";i:1;s:6:"groups";i:2;s:7:"default";}', '__', 'id'];
         $this->assertTrue(Storage::exists($data, $keys1));
 
@@ -53,7 +57,7 @@ class StorageTest extends TestCase
      */
     public function testInsert()
     {
-        $data = [
+         $data = [
             'fr_FR' => [
                 'a:3:{i:0;s:12:"groups_index";i:1;s:6:"groups";i:2;s:7:"default";}' => [
                     '__' => [
@@ -63,6 +67,10 @@ class StorageTest extends TestCase
             ]
         ];
 
+       // 1. Empty path
+        $this->assertFalse(Storage::insert($data, [], 'Nom'));
+
+        // 2. Normal test
         $keys = ['fr_FR', 'a:3:{i:0;s:12:"groups_index";i:1;s:6:"groups";i:2;s:7:"default";}', '__', 'name'];
         $expected = [
             'fr_FR' => [
@@ -94,6 +102,10 @@ class StorageTest extends TestCase
             ]
         ];
 
+        // 1. Empty path
+        $this->assertNull(Storage::get($data, []));
+
+        // 2. Normal tests
         $keys1 = ['fr_FR', 'a:3:{i:0;s:12:"groups_index";i:1;s:6:"groups";i:2;s:7:"default";}', '__', 'id'];
         $this->assertEquals('Id', Storage::get($data, $keys1));
 

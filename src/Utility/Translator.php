@@ -145,10 +145,11 @@ class Translator implements TranslatorInterface
      *
      * @return string
      */
-    public static function domainKey()
+    public static function domainsKey()
     {
         $instance = self::getInstance();
-        return $instance::$_domainKey;
+//        return $instance::$_domainKey;
+        return $instance::$_domainsKey;
     }
 
     /**
