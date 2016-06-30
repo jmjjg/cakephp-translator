@@ -101,8 +101,10 @@ class TranslatorAutoloadComponent extends Component
             $Controller = $this->_registry->getController();
 
             $pluginName = ltrim(Inflector::camelize(Hash::get($Controller->request->params, 'plugin')) . '.', '.');
+            $controllerName = Hash::get($Controller->request->params, 'controller');
+            $actionName = Hash::get($Controller->request->params, 'action');
 
-            $this->_cacheKey = "{$this->name}.{$pluginName}{$Controller->name}.{$Controller->action}";
+            $this->_cacheKey = "{$this->name}.{$pluginName}{$controllerName}.{$actionName}";
         }
 
         return $this->_cacheKey;
