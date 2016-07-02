@@ -67,9 +67,9 @@ class TranslatorAutoloadComponent extends Component
      */
     public function domains()
     {
-        $Controller = $this->_registry->getController();
-
         if ($this->_domains === null) {
+            $Controller = $this->_registry->getController();
+
             $controllerName = Inflector::underscore(Hash::get($Controller->request->params, 'controller'));
             $actionName = Inflector::underscore(Hash::get($Controller->request->params, 'action'));
             $pluginName = ltrim(Inflector::underscore(Hash::get($Controller->request->params, 'plugin')) . '_', '_');
@@ -150,7 +150,7 @@ class TranslatorAutoloadComponent extends Component
 
         $this->settings = array_merge(
             Hash::normalize($this->defaultSettings),
-            Hash::normalize($this->settings)
+            Hash::normalize($config)
         );
     }
 
