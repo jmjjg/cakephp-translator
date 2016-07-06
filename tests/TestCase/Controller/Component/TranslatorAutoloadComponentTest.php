@@ -26,6 +26,33 @@ class TranslatorAutoloadComponentTest extends TestCase
 
     protected $locales = null;
 
+    public function setUpTranslator(array $requestParams = [], array $mockMethods = [])
+    {
+        $requestParams += [
+            'plugin' => null,
+            'controller' => 'posts',
+            'action' => 'index',
+            '_ext' => null,
+            'pass' => []
+        ];
+        $url = ltrim("{$requestParams['plugin']}.{$requestParams['controller']}/{$requestParams['action']}", '.');
+
+        $this->request = new Request($url);
+        $this->request->params = $requestParams;
+        $this->Controller = new Controller($this->request);
+        $registry = new ComponentRegistry($this->Controller);
+
+        if (empty($mockMethods)) {
+            $this->Controller->Translator = new TranslatorAutoloadComponent($registry, []);
+        } else {
+            $this->Controller->Translator = $this->getMock(
+                '\Translator\Controller\Component\TranslatorAutoloadComponent',
+                $mockMethods,
+                [$registry, [] ]
+            );
+        }
+    }
+
     public function setUp()
     {
         parent::setUp();
@@ -33,24 +60,6 @@ class TranslatorAutoloadComponentTest extends TestCase
         $this->locales = Configure::read('App.paths.locales');
         $locales = Plugin::classPath('Translator') . DS . '..' . DS . 'tests' . DS . 'Locale' . DS;
         Configure::write('App.paths.locales', $locales);
-
-        $this->request = new Request('posts/index');
-        $this->request->params = [
-            'plugin' => null,
-            'controller' => 'posts',
-            'action' => 'index',
-            '_ext' => null,
-            'pass' => []
-        ];
-        $this->Controller = new Controller($this->request);
-        $registry = new ComponentRegistry($this->Controller);
-        $this->Controller->Translator = new TranslatorAutoloadComponent($registry, []);
-        // TODO: mock for callbacks
-//        $this->Controller->Translator = $this->getMock(
-//            '\Translator\Controller\Component\TranslatorAutoloadComponent',
-//            ['load', 'save' ],
-//            [$registry, [] ]
-//        );
     }
 
     public function tearDown()
@@ -58,16 +67,18 @@ class TranslatorAutoloadComponentTest extends TestCase
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
         Translator::reset();
-        unset($this->Controller->Translator);
+        unset($this->Controller->Translator, $this->Controller);
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::domains().
+     * Test of the TranslatorAutoloadComponent::domains() method.
      *
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::domains
      */
     public function testDomains()
     {
+        $this->setUpTranslator();
+
         $expected = [
             'posts_index',
             'posts',
@@ -77,23 +88,27 @@ class TranslatorAutoloadComponentTest extends TestCase
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::cacheKey().
+     * Test of the TranslatorAutoloadComponent::cacheKey() method.
      *
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::cacheKey
      */
     public function testCacheKey()
     {
+        $this->setUpTranslator();
+
         $expected = 'TranslatorAutoload.posts.index';
         $this->assertEquals($expected, $this->Controller->Translator->cacheKey());
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::initialize().
+     * Test of the TranslatorAutoloadComponent::initialize() method.
      *
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::initialize
      */
     public function testInitialize()
     {
+        $this->setUpTranslator();
+
         // 1. Check default settings
         $this->Controller->Translator->initialize([]);
         $expected = [
@@ -117,6 +132,7 @@ class TranslatorAutoloadComponentTest extends TestCase
      */
     public function testLoad()
     {
+        $this->setUpTranslator();
         $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
 
@@ -126,8 +142,8 @@ class TranslatorAutoloadComponentTest extends TestCase
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::load() when the translator class
-     * cannot be found.
+     * Test of the TranslatorAutoloadComponent::load() method when the translator
+     * class cannot be found.
      *
      * @expectedException        RuntimeException
      * @expectedExceptionMessage Missing utility class \Foo\Utility\Translator
@@ -137,6 +153,8 @@ class TranslatorAutoloadComponentTest extends TestCase
      */
     public function testLoadMissingUtilityClassException()
     {
+        $this->setUpTranslator();
+
         $config = [
             'translatorClass' => '\Foo\Utility\Translator'
         ];
@@ -146,8 +164,8 @@ class TranslatorAutoloadComponentTest extends TestCase
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::load() when the translator class
-     * cannot be found.
+     * Test of the TranslatorAutoloadComponent::load() method when the translator
+     * class does not implement the Translator\Utility\TranslatorInterface.
      *
      * @expectedException        RuntimeException
      * @expectedExceptionMessage Utility class \Translator\Utility\Storage does not implement Translator\Utility\TranslatorInterface
@@ -157,6 +175,8 @@ class TranslatorAutoloadComponentTest extends TestCase
      */
     public function testLoadNotImplementsUtilityClassException()
     {
+        $this->setUpTranslator();
+
         $config = [
             'translatorClass' => '\Translator\Utility\Storage'
         ];
@@ -166,13 +186,14 @@ class TranslatorAutoloadComponentTest extends TestCase
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::save().
+     * Test of the TranslatorAutoloadComponent::save() method.
      *
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::save
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_translator
      */
     public function testSave()
     {
+        $this->setUpTranslator();
         $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
 
@@ -193,29 +214,44 @@ class TranslatorAutoloadComponentTest extends TestCase
     }
 
     /**
-     * Test of the TranslatorAutoloadComponent::shutdown().
+     * Test of the TranslatorAutoloadComponent::beforeRender() method.
+     *
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::beforeRender
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
+     */
+    public function testBeforeRender()
+    {
+        $this->setUpTranslator([], ['load', 'save']);
+
+        $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
+        $Instance = $translatorClass::getInstance();
+        $Instance->__('name');
+
+        $this->Controller->Translator->expects($this->once())->method('load');
+
+        $event = new Event('Controller.beforeRender', $this->Controller);
+        $this->Controller->Translator->beforeRender($event);
+    }
+
+    /**
+     * Test of the TranslatorAutoloadComponent::shutdown() method.
      *
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::shutdown
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
      */
     public function testShutdown()
     {
+        $this->setUpTranslator([], ['load', 'save']);
+
         $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
-
         $Instance->__('name');
+
+        $this->Controller->Translator->expects($this->once())->method('save');
 
         $event = new Event('Controller.shutdown', $this->Controller);
         $this->Controller->Translator->shutdown($event);
-
-        $expected = [
-            'fr_FR' => [
-                    'a:0:{}' => [
-                            '__' => [
-                                    'name' => 'name'
-                            ]
-                    ]
-            ]
-        ];
-        $this->assertEquals($expected, $Instance->export());
     }
 }
