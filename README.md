@@ -49,3 +49,39 @@ sudo bash -c "( rm -rf logs/quality ; find . -type f -regex '^\./\(logs\|tmp\)/.
 # Build the plugin
 sudo -u apache ant quality -f plugins/Translator/vendor/Jenkins/build.xml
 ```
+
+## Sample usage in a view
+```
+use Cake\Utility\Inflector;
+use Helpers\Utility\Url;
+
+$cells = Hash::normalize($cells);
+foreach ($cells as $path => $cell) {
+    $isLink = $path[0] === '/';
+
+    if (false === $isLink && false === isset($cell['label'])) {
+        $cells[$path]['label'] = Translator::__($path);
+    }
+    elseif (true === $isLink) {
+        if (false === isset($cell['text'])) {
+            $cells[$path]['text'] = Translator::__($path);
+        }
+
+        $title = false === isset($cell['title']) || in_array($cell['title'], [null, true], true);
+        $confirm = true === isset($cell['confirm']) && true === $cell['confirm'];
+
+        if ($title || $confirm) {
+            $data = Url::parse($path);
+            $actionMiddle = Inflector::singularize($data['action']);
+            $actionStart = mb_convert_case($actionMiddle, MB_CASE_TITLE);
+            $entity = mb_convert_case(Inflector::singularize($data['controller']), MB_CASE_LOWER);
+            if (true === $title) {
+                $cells[$path]['title'] = Translator::__("{$actionStart} {$entity} « {{name}} » (#{{id}})");
+            }
+            if (true === $confirm) {
+                $cells[$path]['confirm'] = Translator::__("Really {$actionMiddle} {$entity} « {{name}} » (#{{id}})?");
+            }
+        }
+    }
+}
+```
