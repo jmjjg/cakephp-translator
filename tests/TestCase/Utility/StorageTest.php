@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Source code for the StorageTest unit test class from the Translator CakePHP 3 plugin.
  *
@@ -57,7 +58,7 @@ class StorageTest extends TestCase
      */
     public function testInsert()
     {
-         $data = [
+        $data = [
             'fr_FR' => [
                 'a:3:{i:0;s:12:"groups_index";i:1;s:6:"groups";i:2;s:7:"default";}' => [
                     '__' => [
@@ -67,7 +68,7 @@ class StorageTest extends TestCase
             ]
         ];
 
-       // 1. Empty path
+        // 1. Empty path
         $this->assertFalse(Storage::insert($data, [], 'Nom'));
 
         // 2. Normal test

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Source code for the Translator.TranslatorAutoload component class.
  */
@@ -16,6 +17,7 @@ use Cake\Utility\Inflector;
  */
 class TranslatorAutoloadComponent extends Component
 {
+
     /**
      * Name of the component.
      *
@@ -214,21 +216,21 @@ class TranslatorAutoloadComponent extends Component
      */
     protected function _setupEvents()
     {
-        foreach(array_keys($this->settings['events']) as $method) {
+        foreach (array_keys($this->settings['events']) as $method) {
             $this->settings['events'][$method] = (array)$this->settings['events'][$method];
 
             // A component event that is unknown ?
-            if(!isset($this->defaultSettings['events'][$method])) {
+            if (!isset($this->defaultSettings['events'][$method])) {
                 unset($this->settings['events'][$method]);
             } else {
                 $error = false;
-                foreach($this->settings['events'][$method] as $key => $name) {
-                    if(!isset($this->_availableEvents[$name])) {
+                foreach ($this->settings['events'][$method] as $key => $name) {
+                    if (!isset($this->_availableEvents[$name])) {
                         $error = true;
                         unset($this->settings['events'][$method][$key]);
                     }
                 }
-                if(empty($this->settings['events'][$method]) && true === $error) {
+                if (empty($this->settings['events'][$method]) && true === $error) {
                     $this->settings['events'][$method] = (array)$this->defaultSettings['events'][$method];
                 }
             }
@@ -256,14 +258,15 @@ class TranslatorAutoloadComponent extends Component
     /**
      * Dispatch an avent and call the corresponding component method when needed.
      *
-     * @param Event $event
+     * @param Event $event The event to dispatch
+     * @return void
      */
     protected function _dispatchEvent(Event $event)
     {
-        foreach(array_keys($this->settings['events']) as $method) {
+        foreach (array_keys($this->settings['events']) as $method) {
             $found = in_array($event->name(), $this->settings['events'][$method]);
-            if(false !== $found) {
-                call_user_func(array($this, $method));
+            if (false !== $found) {
+                call_user_func([$this, $method]);
             }
         }
     }
