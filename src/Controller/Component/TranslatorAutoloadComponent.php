@@ -33,10 +33,45 @@ class TranslatorAutoloadComponent extends Component
     /**
      * Default settings.
      *
+     * To get the translations available only in the view and saved after
+     * rendering:
+     * <code>
+     * 'events' => [
+     *  'load' => ['Controller.beforeRender'],
+     *  'save' => ['Controller.shutdown']
+     * ]
+     * </code>
+     *
+     * To get the translations available anywhere in the controller and in the
+     * view and saved before redirection or after rendering:
+     * <code>
+     * 'events' => [
+     *  'load' => ['Controller.initialize'],
+     *  'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+     * ]
+     * </code>
+     *
      * @var array
      */
     public $defaultSettings = [
-        'translatorClass' => '\\Translator\\Utility\\Translator'
+        'translatorClass' => '\\Translator\\Utility\\Translator',
+        'events' => [
+            'load' => ['Controller.beforeRender'],
+            'save' => ['Controller.shutdown']
+        ]
+    ];
+
+    /**
+     * Available events.
+     *
+     * @var array
+     */
+    protected $_availableEvents = [
+        'Controller.initialize',
+        'Controller.startup',
+        'Controller.beforeRender',
+        'Controller.beforeRedirect',
+        'Controller.shutdown'
     ];
 
     /**
@@ -139,23 +174,7 @@ class TranslatorAutoloadComponent extends Component
     }
 
     /**
-     * Initialize the component configuration on startup.
-     *
-     * @param array $config The settings set in the controller
-     * @return void
-     */
-    public function initialize(array $config)
-    {
-        parent::initialize($config);
-
-        $this->settings = array_merge(
-            Hash::normalize($this->defaultSettings),
-            Hash::normalize($config)
-        );
-    }
-
-    /**
-     * Imports the translation cache for the current domains.
+     * Import the translation cache for the current domains.
      *
      * @return void
      */
@@ -173,7 +192,7 @@ class TranslatorAutoloadComponent extends Component
     }
 
     /**
-     * Exports the translation cache for the current domains.
+     * Export the translation cache for the current domains.
      *
      * @return void
      */
@@ -189,28 +208,118 @@ class TranslatorAutoloadComponent extends Component
     }
 
     /**
-     * Loads the translations for the current domains before rendering the view.
+     * Setup the event callbacks or provide sane defaults.
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @return void
+     */
+    protected function _setupEvents()
+    {
+        foreach(array_keys($this->settings['events']) as $method) {
+            $this->settings['events'][$method] = (array)$this->settings['events'][$method];
+
+            // A component event that is unknown ?
+            if(!isset($this->defaultSettings['events'][$method])) {
+                unset($this->settings['events'][$method]);
+            } else {
+                $error = false;
+                foreach($this->settings['events'][$method] as $key => $name) {
+                    if(!isset($this->_availableEvents[$name])) {
+                        $error = true;
+                        unset($this->settings['events'][$method][$key]);
+                    }
+                }
+                if(empty($this->settings['events'][$method]) && true === $error) {
+                    $this->settings['events'][$method] = (array)$this->defaultSettings['events'][$method];
+                }
+            }
+        }
+    }
+
+    /**
+     * Initialize the component configuration on startup.
+     *
+     * @param array $config The settings set in the controller
+     * @return void
+     */
+    public function initialize(array $config)
+    {
+        parent::initialize($config);
+
+        $this->settings = array_merge(
+            Hash::normalize($this->defaultSettings),
+            Hash::normalize($config)
+        );
+
+        $this->_setupEvents();
+    }
+
+    /**
+     * Dispatch an avent and call the corresponding component method when needed.
+     *
+     * @param Event $event
+     */
+    protected function _dispatchEvent(Event $event)
+    {
+        foreach(array_keys($this->settings['events']) as $method) {
+            $found = in_array($event->name(), $this->settings['events'][$method]);
+            if(false !== $found) {
+                call_user_func(array($this, $method));
+            }
+        }
+    }
+
+    /**
+     * Dispatch the "Controller.initialize" event.
+     *
+     * @param Event $event The event that caused the callback
+     * @return void
+     */
+    public function beforeFilter(Event $event)
+    {
+        $this->_dispatchEvent($event);
+    }
+
+    /**
+     * Dispatch the "Controller.startup" event.
+     *
+     * @param Event $event The event that caused the callback
+     * @return void
+     */
+    public function startup(Event $event)
+    {
+        $this->_dispatchEvent($event);
+    }
+
+    /**
+     * Dispatch the "Controller.beforeRender" event.
      *
      * @param Event $event The event that caused the callback
      * @return void
      */
     public function beforeRender(Event $event)
     {
-        $this->load();
+        $this->_dispatchEvent($event);
     }
 
     /**
-     * Caches the translations for the current domains after rendering the view.
+     * Dispatch the "Controller.beforeRedirect" event.
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @param Event $event The event that caused the callback
+     * @return void
+     */
+    public function beforeRedirect(Event $event)
+    {
+        $this->_dispatchEvent($event);
+    }
+
+    /**
+     * Dispatch the "Controller.beforeRender" event.
      *
      * @param Event $event The event that caused the callback
      * @return void
      */
     public function shutdown(Event $event)
     {
-        $this->save();
+        $this->_dispatchEvent($event);
     }
 }

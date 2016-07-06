@@ -10,6 +10,7 @@ use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
+use Cake\Event\Event;
 use Cake\Network\Request;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
@@ -21,7 +22,7 @@ use Translator\Utility\Translator;
  */
 class TranslatorAutoloadComponentTest extends TestCase
 {
-    protected $Translator = null;
+    protected $Controller = null;
 
     protected $locales = null;
 
@@ -41,9 +42,15 @@ class TranslatorAutoloadComponentTest extends TestCase
             '_ext' => null,
             'pass' => []
         ];
-        $controller = new Controller($this->request);
-        $registry = new ComponentRegistry($controller);
-        $this->Translator = new TranslatorAutoloadComponent($registry, []);
+        $this->Controller = new Controller($this->request);
+        $registry = new ComponentRegistry($this->Controller);
+        $this->Controller->Translator = new TranslatorAutoloadComponent($registry, []);
+        // TODO: mock for callbacks
+//        $this->Controller->Translator = $this->getMock(
+//            '\Translator\Controller\Component\TranslatorAutoloadComponent',
+//            ['load', 'save' ],
+//            [$registry, [] ]
+//        );
     }
 
     public function tearDown()
@@ -51,7 +58,7 @@ class TranslatorAutoloadComponentTest extends TestCase
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
         Translator::reset();
-        unset($this->Translator);
+        unset($this->Controller->Translator);
     }
 
     /**
@@ -66,7 +73,7 @@ class TranslatorAutoloadComponentTest extends TestCase
             'posts',
             'default'
         ];
-        $this->assertEquals($expected, $this->Translator->domains());
+        $this->assertEquals($expected, $this->Controller->Translator->domains());
     }
 
     /**
@@ -77,7 +84,7 @@ class TranslatorAutoloadComponentTest extends TestCase
     public function testCacheKey()
     {
         $expected = 'TranslatorAutoload.posts.index';
-        $this->assertEquals($expected, $this->Translator->cacheKey());
+        $this->assertEquals($expected, $this->Controller->Translator->cacheKey());
     }
 
     /**
@@ -88,18 +95,18 @@ class TranslatorAutoloadComponentTest extends TestCase
     public function testInitialize()
     {
         // 1. Check default settings
-        $this->Translator->initialize([]);
+        $this->Controller->Translator->initialize([]);
         $expected = [
             'translatorClass' => '\Translator\Utility\Translator'
-        ];
-        $this->assertEquals($expected, $this->Translator->settings);
+        ] + $this->Controller->Translator->defaultSettings;
+        $this->assertEquals($expected, $this->Controller->Translator->settings);
 
         // 2. Overwrite default settings
         $config = [
             'translatorClass' => '\Foo\Utility\Translator'
-        ];
-        $this->Translator->initialize($config);
-        $this->assertEquals($config, $this->Translator->settings);
+        ] + $this->Controller->Translator->defaultSettings;
+        $this->Controller->Translator->initialize($config);
+        $this->assertEquals($config, $this->Controller->Translator->settings);
     }
 
     /**
@@ -110,10 +117,10 @@ class TranslatorAutoloadComponentTest extends TestCase
      */
     public function testLoad()
     {
-        $translatorClass = Hash::get($this->Translator->settings, 'translatorClass');
+        $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
 
-        $this->Translator->load();
+        $this->Controller->Translator->load();
 
         $this->assertEquals([], $Instance->export());
     }
@@ -133,9 +140,9 @@ class TranslatorAutoloadComponentTest extends TestCase
         $config = [
             'translatorClass' => '\Foo\Utility\Translator'
         ];
-        $this->Translator->initialize($config);
+        $this->Controller->Translator->initialize($config);
 
-        $this->Translator->load();
+        $this->Controller->Translator->load();
     }
 
     /**
@@ -153,9 +160,9 @@ class TranslatorAutoloadComponentTest extends TestCase
         $config = [
             'translatorClass' => '\Translator\Utility\Storage'
         ];
-        $this->Translator->initialize($config);
+        $this->Controller->Translator->initialize($config);
 
-        $this->Translator->load();
+        $this->Controller->Translator->load();
     }
 
     /**
@@ -166,12 +173,39 @@ class TranslatorAutoloadComponentTest extends TestCase
      */
     public function testSave()
     {
-        $translatorClass = Hash::get($this->Translator->settings, 'translatorClass');
+        $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
 
         $Instance->__('name');
 
-        $this->Translator->save();
+        $this->Controller->Translator->save();
+
+        $expected = [
+            'fr_FR' => [
+                    'a:0:{}' => [
+                            '__' => [
+                                    'name' => 'name'
+                            ]
+                    ]
+            ]
+        ];
+        $this->assertEquals($expected, $Instance->export());
+    }
+
+    /**
+     * Test of the TranslatorAutoloadComponent::shutdown().
+     *
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::shutdown
+     */
+    public function testShutdown()
+    {
+        $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
+        $Instance = $translatorClass::getInstance();
+
+        $Instance->__('name');
+
+        $event = new Event('Controller.shutdown', $this->Controller);
+        $this->Controller->Translator->shutdown($event);
 
         $expected = [
             'fr_FR' => [
