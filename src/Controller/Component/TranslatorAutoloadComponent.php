@@ -53,6 +53,13 @@ class TranslatorAutoloadComponent extends Component
      * ]
      * </code>
      *
+     * Available events:
+     *  - Controller.initialize (Component.beforeFilter)
+     *  - Controller.startup (Component.startup)
+     *  - Controller.beforeRender (Component.beforeRender)
+     *  - Controller.beforeRedirect (Component.beforeRedirect)
+     *  - Controller.shutdown (Component.beforeRender)
+     *
      * @var array
      */
     public $defaultSettings = [
@@ -69,11 +76,11 @@ class TranslatorAutoloadComponent extends Component
      * @var array
      */
     protected $_availableEvents = [
-        'Controller.initialize',
-        'Controller.startup',
-        'Controller.beforeRender',
-        'Controller.beforeRedirect',
-        'Controller.shutdown'
+        'Controller.initialize' => 'Component.beforeFilter',
+        'Controller.startup' => 'Component.startup',
+        'Controller.beforeRender' => 'Component.beforeRender',
+        'Controller.beforeRedirect' => 'Component.beforeRedirect',
+        'Controller.shutdown' => 'Component.beforeRender'
     ];
 
     /**
@@ -273,6 +280,8 @@ class TranslatorAutoloadComponent extends Component
 
     /**
      * Dispatch the "Controller.initialize" event.
+     *
+     * @fixme: Controller.initialize / Component.beforeFilter
      *
      * @param Event $event The event that caused the callback
      * @return void
