@@ -53,6 +53,12 @@ class TranslatorAutoloadComponentTest extends TestCase
         }
     }
 
+    public function tearDownTranslator()
+    {
+        Translator::reset();
+        unset($this->Controller->Translator, $this->Controller);
+    }
+
     public function setUp()
     {
         parent::setUp();
@@ -66,8 +72,7 @@ class TranslatorAutoloadComponentTest extends TestCase
     {
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
-        Translator::reset();
-        unset($this->Controller->Translator, $this->Controller);
+        $this->tearDownTranslator();
     }
 
     /**
@@ -112,8 +117,12 @@ class TranslatorAutoloadComponentTest extends TestCase
         // 1. Check default settings
         $this->Controller->Translator->initialize([]);
         $expected = [
-            'translatorClass' => '\Translator\Utility\Translator'
-        ] + $this->Controller->Translator->defaultSettings;
+            'translatorClass' => '\Translator\Utility\Translator',
+            'events' => [
+                'load' => ['Controller.initialize'],
+                'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+            ]
+        ];
         $this->assertEquals($expected, $this->Controller->Translator->settings);
 
         // 2. Overwrite default settings
@@ -122,6 +131,49 @@ class TranslatorAutoloadComponentTest extends TestCase
         ] + $this->Controller->Translator->defaultSettings;
         $this->Controller->Translator->initialize($config);
         $this->assertEquals($config, $this->Controller->Translator->settings);
+    }
+
+    /**
+     * Test of the TranslatorAutoloadComponent::settings() method.
+     *
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::settings
+     */
+    public function testSettings()
+    {
+        $this->setUpTranslator();
+
+        // 1. Check default settings
+        $expected = [
+            'translatorClass' => '\Translator\Utility\Translator',
+            'events' => [
+                'load' => ['Controller.initialize'],
+                'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+            ]
+        ];
+        $this->assertEquals($expected, $this->Controller->Translator->settings([]));
+
+        // 2. Overwrite default settings
+        $config = [
+            'translatorClass' => '\Foo\Utility\Translator'
+        ] + $this->Controller->Translator->defaultSettings;
+        $this->assertEquals($config, $this->Controller->Translator->settings($config));
+
+        // 3. Unknown component event
+        $config = [
+            'events' => [
+                'foo' => ['bar']
+            ]
+        ] + $this->Controller->Translator->defaultSettings;
+        $this->assertEquals($this->Controller->Translator->defaultSettings, $this->Controller->Translator->settings($config));
+
+       /*// 4. Unknown controller event
+        $config = [
+            'events' => [
+                'load' => ['Foo.bar'],
+                'save' => [] //FIXME: wrong settings with and without an empty key...
+            ]
+        ] + $this->Controller->Translator->defaultSettings;
+        $this->assertEquals($this->Controller->Translator->defaultSettings, $this->Controller->Translator->settings($config));*/
     }
 
     /**
@@ -139,6 +191,20 @@ class TranslatorAutoloadComponentTest extends TestCase
         $this->Controller->Translator->load();
 
         $this->assertEquals([], $Instance->export());
+
+//        Configure::write( 'debug', false );
+//        $this->Controller->Translator->save();
+//        Configure::write( 'debug', true );
+//        $this->tearDownTranslator();
+//        $this->setUpTranslator();
+//        $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
+//        $Instance = $translatorClass::getInstance();
+//
+//        Configure::write( 'debug', false );
+//        $this->Controller->Translator->load();
+//        Configure::write( 'debug', true );
+//
+//        $this->assertEquals([], $Instance->export());
     }
 
     /**
@@ -219,10 +285,11 @@ class TranslatorAutoloadComponentTest extends TestCase
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::beforeRender
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::settings
      */
     public function testControllerBeforeRender()
     {
-        $this->setUpTranslator([], ['load', 'save']);
+        $this->setUpTranslator([], ['load', 'save'], ['events' => ['load' => ['Controller.beforeRender']]]);
 
         $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
@@ -240,10 +307,11 @@ class TranslatorAutoloadComponentTest extends TestCase
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::shutdown
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::settings
      */
     public function testControllerShutdown()
     {
-        $this->setUpTranslator([], ['load', 'save']);
+        $this->setUpTranslator([], ['load', 'save'], ['events' => ['save' => ['Controller.shutdown']]]);
 
         $translatorClass = Hash::get($this->Controller->Translator->settings, 'translatorClass');
         $Instance = $translatorClass::getInstance();
@@ -261,6 +329,7 @@ class TranslatorAutoloadComponentTest extends TestCase
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::startup
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::settings
      */
     public function testControllerStartup()
     {
@@ -282,6 +351,7 @@ class TranslatorAutoloadComponentTest extends TestCase
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::beforeFilter
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::settings
      */
     public function testControllerBeforeFilter()
     {
@@ -303,6 +373,7 @@ class TranslatorAutoloadComponentTest extends TestCase
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::beforeRedirect
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_dispatchEvent
      * @covers Translator\Controller\Component\TranslatorAutoloadComponent::_setupEvents
+     * @covers Translator\Controller\Component\TranslatorAutoloadComponent::settings
      */
     public function testControllerBeforeRedirect()
     {

@@ -26,8 +26,15 @@ class AppController extends Controller
     {
         parent::initialize();
 
-        // ...
-        $this->loadComponent('Translator.TranslatorAutoload');
+        // Default settings
+        $settings = [
+            'translatorClass' => '\\Translator\\Utility\\Translator',
+            'events' => [
+                'load' => ['Controller.initialize'],
+                'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+            ]
+        ];
+        $this->loadComponent('Translator.TranslatorAutoload', $settings);
     }
 }
 ```

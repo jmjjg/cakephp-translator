@@ -14,6 +14,39 @@ use Cake\Utility\Inflector;
 /**
  * The TranslatorAutoloadComponent class automatically loads and saves in the cache
  * the latest translations used for the current URL's domains.
+ *
+ * Settings
+ *
+ * 1. translatorClass
+ * The translatorClass needs to implement the Translator\Utility\TranslatorInterface.
+ * Default: '\\Translator\\Utility\\Translator'
+ *
+ * 2. events
+ *
+ * To get the translations available anywhere in the controller and in the
+ * view and saved before redirection or after rendering (the default):
+ * <code>
+ * 'events' => [
+ *  'load' => ['Controller.initialize'],
+ *  'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+ * ]
+ * </code>
+ *
+ * To get the translations available only in the view and saved after
+ * rendering:
+ * <code>
+ * 'events' => [
+ *  'load' => ['Controller.beforeRender'],
+ *  'save' => ['Controller.shutdown']
+ * ]
+ * </code>
+ *
+ * Available events:
+ *  - Controller.initialize (Component.beforeFilter)
+ *  - Controller.startup (Component.startup)
+ *  - Controller.beforeRender (Component.beforeRender)
+ *  - Controller.beforeRedirect (Component.beforeRedirect)
+ *  - Controller.shutdown (Component.beforeRender)
  */
 class TranslatorAutoloadComponent extends Component
 {
@@ -35,38 +68,13 @@ class TranslatorAutoloadComponent extends Component
     /**
      * Default settings.
      *
-     * To get the translations available only in the view and saved after
-     * rendering:
-     * <code>
-     * 'events' => [
-     *  'load' => ['Controller.beforeRender'],
-     *  'save' => ['Controller.shutdown']
-     * ]
-     * </code>
-     *
-     * To get the translations available anywhere in the controller and in the
-     * view and saved before redirection or after rendering:
-     * <code>
-     * 'events' => [
-     *  'load' => ['Controller.initialize'],
-     *  'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
-     * ]
-     * </code>
-     *
-     * Available events:
-     *  - Controller.initialize (Component.beforeFilter)
-     *  - Controller.startup (Component.startup)
-     *  - Controller.beforeRender (Component.beforeRender)
-     *  - Controller.beforeRedirect (Component.beforeRedirect)
-     *  - Controller.shutdown (Component.beforeRender)
-     *
      * @var array
      */
     public $defaultSettings = [
         'translatorClass' => '\\Translator\\Utility\\Translator',
         'events' => [
-            'load' => ['Controller.beforeRender'],
-            'save' => ['Controller.shutdown']
+            'load' => ['Controller.initialize'],
+            'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
         ]
     ];
 
@@ -242,6 +250,32 @@ class TranslatorAutoloadComponent extends Component
                 }
             }
         }
+
+        if (true === empty($this->settings['events'])) {
+            $this->settings['events'] = $this->defaultSettings['events'];
+        }
+    }
+
+    /**
+     * Getter / setter for the configuration, including sane defaults for events.
+     *
+     * @todo merge to previous configuration
+     *
+     * @param array $settings The settings to be merged to the default configuration
+     * @return array
+     */
+    public function settings(array $settings = null)
+    {
+        if (null !== $settings) {
+            $this->settings = array_merge(
+                Hash::normalize($this->defaultSettings),
+                Hash::normalize((array)$settings)
+            );
+
+            $this->_setupEvents();
+        }
+
+        return $this->settings;
     }
 
     /**
@@ -253,13 +287,7 @@ class TranslatorAutoloadComponent extends Component
     public function initialize(array $config)
     {
         parent::initialize($config);
-
-        $this->settings = array_merge(
-            Hash::normalize($this->defaultSettings),
-            Hash::normalize($config)
-        );
-
-        $this->_setupEvents();
+        $this->settings($config);
     }
 
     /**
