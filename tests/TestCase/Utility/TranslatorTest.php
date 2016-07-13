@@ -13,6 +13,8 @@ use Translator\Utility\Translator;
 
 /**
  * The TranslatorTest class unit tests the Translator\Utility\Translator class.
+ *
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 class TranslatorTest extends TestCase
 {

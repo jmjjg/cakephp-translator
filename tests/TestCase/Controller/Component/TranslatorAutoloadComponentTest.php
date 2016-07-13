@@ -18,7 +18,10 @@ use Translator\Controller\Component\TranslatorAutoloadComponent;
 use Translator\Utility\Translator;
 
 /**
- * The TranslatorAutoloadComponentTest class unit tests the Translator\Controller\Component\TranslatorAutoloadComponent class.
+ * The TranslatorAutoloadComponentTest class unit tests the
+ * Translator\Controller\Component\TranslatorAutoloadComponent class.
+ *
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 class TranslatorAutoloadComponentTest extends TestCase
 {
