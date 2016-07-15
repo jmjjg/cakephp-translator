@@ -26,18 +26,52 @@ class AppController extends Controller
     {
         parent::initialize();
 
-        // Default settings
-        $settings = [
-            'translatorClass' => '\\Translator\\Utility\\Translator',
-            'events' => [
-                'load' => ['Controller.initialize'],
-                'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
-            ]
+        $config = [
+            // ...
         ];
-        $this->loadComponent('Translator.TranslatorAutoload', $settings);
+        $this->loadComponent('Translator.TranslatorAutoload', $config);
     }
 }
 ```
+
+### Config keys
+
+#### translatorClass
+The translatorClass needs to implement the Translator\Utility\TranslatorInterface.
+Default: '\\Translator\\Utility\\Translator'
+
+#### events
+
+To get the translations available anywhere in the controller and in the
+view and saved before redirection or after rendering (the default):
+```
+ 'events' => [
+     'Controller.initialize' => 'load',
+     'Controller.startup' => null,
+     'Controller.beforeRender' => null,
+     'Controller.beforeRedirect' => 'save',
+     'Controller.shutdown' => 'save'
+]
+```
+
+To get the translations available only in the view and saved after
+rendering:
+```
+'events' => [
+     'Controller.initialize' => null,
+     'Controller.startup' => null,
+     'Controller.beforeRender' => 'load',
+     'Controller.beforeRedirect' => 'save',
+     'Controller.shutdown' => 'save'
+]
+```
+
+Available events:
+ - Controller.initialize (Component.beforeFilter)
+ - Controller.startup (Component.startup)
+ - Controller.beforeRender (Component.beforeRender)
+ - Controller.beforeRedirect (Component.beforeRedirect)
+ - Controller.shutdown (Component.beforeRender)
 
 ## Usage in locales and in views
 

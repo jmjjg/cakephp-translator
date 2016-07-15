@@ -1,12 +1,14 @@
 <?php
-
 /**
  * Source code for the Translator.TranslatorAutoload component class.
+ *
+ * @author Christian Buffin
  */
 namespace Translator\Controller\Component;
 
 use Cake\Cache\Cache;
 use Cake\Controller\Component;
+use Cake\Error\FatalErrorException;
 use Cake\Event\Event;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
@@ -15,7 +17,7 @@ use Cake\Utility\Inflector;
  * The TranslatorAutoloadComponent class automatically loads and saves in the cache
  * the latest translations used for the current URL's domains.
  *
- * Settings
+ * Config
  *
  * 1. translatorClass
  * The translatorClass needs to implement the Translator\Utility\TranslatorInterface.
@@ -26,9 +28,12 @@ use Cake\Utility\Inflector;
  * To get the translations available anywhere in the controller and in the
  * view and saved before redirection or after rendering (the default):
  * <code>
- * 'events' => [
- *  'load' => ['Controller.initialize'],
- *  'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+ *  'events' => [
+ *      'Controller.initialize' => 'load',
+ *      'Controller.startup' => null,
+ *      'Controller.beforeRender' => null,
+ *      'Controller.beforeRedirect' => 'save',
+ *      'Controller.shutdown' => 'save'
  * ]
  * </code>
  *
@@ -36,8 +41,11 @@ use Cake\Utility\Inflector;
  * rendering:
  * <code>
  * 'events' => [
- *  'load' => ['Controller.beforeRender'],
- *  'save' => ['Controller.shutdown']
+ *      'Controller.initialize' => null,
+ *      'Controller.startup' => null,
+ *      'Controller.beforeRender' => 'load',
+ *      'Controller.beforeRedirect' => 'save',
+ *      'Controller.shutdown' => 'save'
  * ]
  * </code>
  *
@@ -50,7 +58,6 @@ use Cake\Utility\Inflector;
  */
 class TranslatorAutoloadComponent extends Component
 {
-
     /**
      * Name of the component.
      *
@@ -59,36 +66,35 @@ class TranslatorAutoloadComponent extends Component
     public $name = 'TranslatorAutoload';
 
     /**
-     * Actual settings.
+     * Default configuration.
      *
      * @var array
      */
-    public $settings = [];
-
-    /**
-     * Default settings.
-     *
-     * @var array
-     */
-    public $defaultSettings = [
+    protected $_defaultConfig = [
         'translatorClass' => '\\Translator\\Utility\\Translator',
         'events' => [
-            'load' => ['Controller.initialize'],
-            'save' => ['Controller.beforeRedirect', 'Controller.shutdown']
+            'Controller.initialize' => 'load',
+            'Controller.startup' => null,
+            'Controller.beforeRender' => null,
+            'Controller.beforeRedirect' => 'save',
+            'Controller.shutdown' => 'save'
         ]
     ];
 
+
     /**
-     * Available events.
+     * Holds the regular CakePHP implement events for a component.
+     *
+     * @see \Cake\Controller\Component::implementedEvents
      *
      * @var array
      */
-    protected $_availableEvents = [
-        'Controller.initialize' => 'Component.beforeFilter',
-        'Controller.startup' => 'Component.startup',
-        'Controller.beforeRender' => 'Component.beforeRender',
-        'Controller.beforeRedirect' => 'Component.beforeRedirect',
-        'Controller.shutdown' => 'Component.beforeRender'
+    protected $_eventMap = [
+        'Controller.initialize' => 'beforeFilter',
+        'Controller.startup' => 'startup',
+        'Controller.beforeRender' => 'beforeRender',
+        'Controller.beforeRedirect' => 'beforeRedirect',
+        'Controller.shutdown' => 'shutdown',
     ];
 
     /**
@@ -171,7 +177,7 @@ class TranslatorAutoloadComponent extends Component
     protected function _translator()
     {
         if ($this->_translator === null) {
-            $translatorClass = Hash::get($this->settings, 'translatorClass');
+            $translatorClass = $this->config('translatorClass');
 
             if (false === class_exists($translatorClass)) {
                 $msg = sprintf(__d('cake_dev', 'Missing utility class %s'), $translatorClass);
@@ -225,60 +231,6 @@ class TranslatorAutoloadComponent extends Component
     }
 
     /**
-     * Setup the event callbacks or provide sane defaults.
-     *
-     * @return void
-     */
-    protected function _setupEvents()
-    {
-        foreach (array_keys($this->settings['events']) as $method) {
-            $this->settings['events'][$method] = (array)$this->settings['events'][$method];
-
-            // A component event that is unknown ?
-            if (!isset($this->defaultSettings['events'][$method])) {
-                unset($this->settings['events'][$method]);
-            } else {
-                $error = false;
-                foreach ($this->settings['events'][$method] as $key => $name) {
-                    if (!isset($this->_availableEvents[$name])) {
-                        $error = true;
-                        unset($this->settings['events'][$method][$key]);
-                    }
-                }
-                if (empty($this->settings['events'][$method]) && true === $error) {
-                    $this->settings['events'][$method] = (array)$this->defaultSettings['events'][$method];
-                }
-            }
-        }
-
-        if (true === empty($this->settings['events'])) {
-            $this->settings['events'] = $this->defaultSettings['events'];
-        }
-    }
-
-    /**
-     * Getter / setter for the configuration, including sane defaults for events.
-     *
-     * @todo merge to previous configuration
-     *
-     * @param array $settings The settings to be merged to the default configuration
-     * @return array
-     */
-    public function settings(array $settings = null)
-    {
-        if (null !== $settings) {
-            $this->settings = array_merge(
-                Hash::normalize($this->defaultSettings),
-                Hash::normalize((array)$settings)
-            );
-
-            $this->_setupEvents();
-        }
-
-        return $this->settings;
-    }
-
-    /**
      * Initialize the component configuration on startup.
      *
      * @param array $config The settings set in the controller
@@ -287,7 +239,7 @@ class TranslatorAutoloadComponent extends Component
     public function initialize(array $config)
     {
         parent::initialize($config);
-        $this->settings($config);
+        $this->config($config);
     }
 
     /**
@@ -295,71 +247,54 @@ class TranslatorAutoloadComponent extends Component
      *
      * @param Event $event The event to dispatch
      * @return void
+     * @throws \RuntimeException
      */
-    protected function _dispatchEvent(Event $event)
+    public function dispatchEvent(Event $event)
     {
-        foreach (array_keys($this->settings['events']) as $method) {
-            $found = in_array($event->name(), $this->settings['events'][$method]);
-            if (false !== $found) {
-                call_user_func([$this, $method]);
-            }
+        $events = $this->config('events');
+        $method = isset($events[$event->name()]) ? $events[$event->name()] : null;
+
+        if (true === in_array($method, ['load', 'save'])) {
+            call_user_func([$this, $method]);
+        } elseif (null !== $method) {
+            $msg = sprintf(__d('cake_dev', 'Method "%s" cannot be called. Use one of "load", "save"'), $method);
+            throw new \RuntimeException($msg, 500);
         }
     }
 
     /**
-     * Dispatch the "Controller.initialize" event.
+     * Redirect all the regular CakePHP implemented events for this component to the
+     * dispatchEvent method.
      *
-     * @fixme: Controller.initialize / Component.beforeFilter
-     *
-     * @param Event $event The event that caused the callback
-     * @return void
+     * @return array
      */
-    public function beforeFilter(Event $event)
+    public function implementedEvents()
     {
-        $this->_dispatchEvent($event);
+        return [
+            'Controller.initialize' => 'dispatchEvent',
+            'Controller.startup' => 'dispatchEvent',
+            'Controller.beforeRender' => 'dispatchEvent',
+            'Controller.beforeRedirect' => 'dispatchEvent',
+            'Controller.shutdown' => 'dispatchEvent'
+        ];
     }
 
     /**
-     * Dispatch the "Controller.startup" event.
+     * Dispatches the regular CakePHP implemented events for this component to the
+     * dispatchEvent method.
      *
-     * @param Event $event The event that caused the callback
-     * @return void
+     * @param string $name The name of the method that was called
+     * @param array $arguments The arguments the method was called with
+     * @return mixed
+     * @throws FatalErrorException
      */
-    public function startup(Event $event)
+    public function __call($name, $arguments)
     {
-        $this->_dispatchEvent($event);
-    }
-
-    /**
-     * Dispatch the "Controller.beforeRender" event.
-     *
-     * @param Event $event The event that caused the callback
-     * @return void
-     */
-    public function beforeRender(Event $event)
-    {
-        $this->_dispatchEvent($event);
-    }
-
-    /**
-     * Dispatch the "Controller.beforeRedirect" event.
-     *
-     * @param Event $event The event that caused the callback
-     * @return void
-     */
-    public function beforeRedirect(Event $event)
-    {
-        $this->_dispatchEvent($event);
-    }
-
-    /**
-     * Dispatch the "Controller.beforeRender" event.
-     *
-     * @param Event $event The event that caused the callback
-     * @return void
-     */
-    public function shutdown(Event $event)
-    {
-        $this->_dispatchEvent($event);
+        if (in_array($name, $this->_eventMap)) {
+            return call_user_func_array([$this, 'dispatchEvent'], $arguments);
+        } else {
+            $msg = sprintf('Call to undefined method %s::%s()', __CLASS__, $name);
+            throw new FatalErrorException($msg);
+        }
     }
 }
