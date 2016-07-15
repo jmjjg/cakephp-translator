@@ -1,6 +1,8 @@
 <?php
 /**
  * Source code for the Translator.Translator utility class.
+ *
+ * @author Christian Buffin
  */
 namespace Translator\Utility;
 
