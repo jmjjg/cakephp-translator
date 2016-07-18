@@ -55,11 +55,13 @@ class Translator implements TranslatorInterface
     protected static $_this = null;
 
     /**
-     * An instance of the messages formatter.
+     * Formatter to be used.
      *
-     * @var FormatterInterface
+     * @see I18n::defaultFormatter()
+     *
+     * @var FormatterLocator
      */
-    protected static $_formatter = null;
+    protected static $_formatters = null;
 
     /**
      * Protected constructor to force the usage of the static getInstance method.
@@ -70,16 +72,14 @@ class Translator implements TranslatorInterface
     {
         self::$_this = $this;
 
-        // TODO
-        /*$formatter = new FormatterLocator([
+        self::$_formatters = new FormatterLocator([
             'sprintf' => function () {
                 return new SprintfFormatter;
             },
             'default' => function () {
                 return new IcuFormatter;
             },
-        ]);*/
-        self::$_formatter = new IcuFormatter();
+        ]);
     }
 
     /**
@@ -150,7 +150,6 @@ class Translator implements TranslatorInterface
     public static function domainsKey()
     {
         $instance = self::getInstance();
-//        return $instance::$_domainKey;
         return $instance::$_domainsKey;
     }
 
@@ -238,7 +237,6 @@ class Translator implements TranslatorInterface
                 $message = I18n::translator()->translate($key);
             }
 
-            $path = [$instance::lang(), $instance::$_domainsKey, __FUNCTION__, $key];
             $instance::$_cache = Storage::insert($instance::$_cache, $path, $message);
             $instance::$_tainted = true;
         }
@@ -250,7 +248,7 @@ class Translator implements TranslatorInterface
             return $message;
         }
 
-        // run message string through formatter to replace tokens with values
-        return $instance::$_formatter->format($instance::lang(), $message, $values);
+        // run message string through I18n default formatter to replace tokens with values
+        return $instance::$_formatters->get(I18n::defaultFormatter())->format($instance::lang(), $message, $values);
     }
 }

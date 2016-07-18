@@ -16,6 +16,13 @@ And set the following in config/app.php
 'App.defaultLocale' => 'fr_FR'
 ```
 
+Uses I18n's default formatter (IcuFormatter), so you can set its value with
+```
+I18n::defaultFormatter('default')
+// or
+I18n::defaultFormatter('sprintf')
+```
+
 Setup domain autoloading in src/Controller/AppController.php
 ```
 use Translator\Controller\Component\TranslatorAutoloadComponent;
