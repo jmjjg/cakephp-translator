@@ -90,7 +90,7 @@ Available events:
 
 ### In src/Template/Groups/index.ctp
     use Translator\Utility\Translator;
-    echo Translator::__('name');
+    echo __m('name');
 
 ## Various bash commands
 ```
@@ -110,11 +110,11 @@ foreach ($cells as $path => $cell) {
     $isLink = $path[0] === '/';
 
     if (false === $isLink && false === isset($cell['label'])) {
-        $cells[$path]['label'] = Translator::__($path);
+        $cells[$path]['label'] = __m($path);
     }
     elseif (true === $isLink) {
         if (false === isset($cell['text'])) {
-            $cells[$path]['text'] = Translator::__($path);
+            $cells[$path]['text'] = __m($path);
         }
 
         $title = false === isset($cell['title']) || in_array($cell['title'], [null, true], true);
@@ -126,10 +126,10 @@ foreach ($cells as $path => $cell) {
             $actionStart = mb_convert_case($actionMiddle, MB_CASE_TITLE);
             $entity = mb_convert_case(Inflector::singularize($data['controller']), MB_CASE_LOWER);
             if (true === $title) {
-                $cells[$path]['title'] = Translator::__("{$actionStart} {$entity} « {{name}} » (#{{id}})");
+                $cells[$path]['title'] = __m("{$actionStart} {$entity} « {{name}} » (#{{id}})");
             }
             if (true === $confirm) {
-                $cells[$path]['confirm'] = Translator::__("Really {$actionMiddle} {$entity} « {{name}} » (#{{id}})?");
+                $cells[$path]['confirm'] = __m("Really {$actionMiddle} {$entity} « {{name}} » (#{{id}})?");
             }
         }
     }
