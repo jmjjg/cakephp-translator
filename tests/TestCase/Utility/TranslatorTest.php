@@ -243,4 +243,33 @@ class TranslatorTest extends TestCase
         ];
         $this->assertEquals($expected, $result);
     }
+
+    /**
+     * Test of the Translator::__() method with the sprintf formatter.
+     *
+     * @covers Translator\Utility\Translator::__
+     */
+    public function testUnderscoreWithSprintfFormatter()
+    {
+        \Cake\I18n\I18n::defaultFormatter('sprintf');
+
+        $result = Translator::__('Some string with %s %s', ['multiple', 'arguments']);
+        $expected = 'Some string with multiple arguments';
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * Test of the Translator::__() method with a wrong formatter.
+     *
+     * @expectedException        \Aura\Intl\Exception\FormatterNotMapped
+     * @expectedExceptionMessage sprintfX
+     *
+     * @covers Translator\Utility\Translator::__
+     */
+    public function testUnderscoreWithWrongFormatter()
+    {
+        \Cake\I18n\I18n::defaultFormatter('sprintfX');
+
+        Translator::__('Some string with {0} {1}', ['multiple', 'arguments']);
+    }
 }
