@@ -20,6 +20,8 @@ class TranslatorTest extends TestCase
 {
     protected $locales = null;
 
+    protected $defaultLocale = null;
+
     public function setUp()
     {
         parent::setUp();
@@ -27,19 +29,23 @@ class TranslatorTest extends TestCase
         $this->locales = Configure::read('App.paths.locales');
         $locales = Plugin::classPath('Translator') . DS . '..' . DS . 'tests' . DS . 'Locale' . DS;
         Configure::write('App.paths.locales', $locales);
+
+        $this->defaultLocale = Configure::read('App.defaultLocale');
+        Configure::write('App.defaultLocale', 'fr_FR');
     }
 
     public function tearDown()
     {
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
+        Configure::write('App.defaultLocale', $this->defaultLocale);
         Translator::reset();
     }
 
     /**
      * Test of the Translator::getInstance() method.
      *
-     * @covers Translator\Utility\Translator::__construct
+     * @covers Translator\Utility\Translator::translate
      * @covers Translator\Utility\Translator::getInstance
      */
     public function testgetInstance()
@@ -77,28 +83,28 @@ class TranslatorTest extends TestCase
     }
 
     /**
-     * Test of the Translator::__() method.
+     * Test of the Translator::translate() method.
      *
-     * @covers Translator\Utility\Translator::__
+     * @covers Translator\Utility\Translator::translate
      */
     public function testUnderscore()
     {
         Translator::domains(['groups_index', 'groups']);
-        $this->assertEquals('Nom', Translator::__('name'));
-        $this->assertEquals('Supprimer', Translator::__('/Groups/delete/{{id}}'));
-        $this->assertEquals('groups_index.po', Translator::__('filename'));
+        $this->assertEquals('Nom', Translator::translate('name'));
+        $this->assertEquals('Supprimer', Translator::translate('/Groups/delete/{{id}}'));
+        $this->assertEquals('groups_index.po', Translator::translate('filename'));
 
         Translator::domains(['groups', 'groups_index']);
-        $this->assertEquals('Nom', Translator::__('name'));
-        $this->assertEquals('Supprimer', Translator::__('/Groups/delete/{{id}}'));
-        $this->assertEquals('groups.po', Translator::__('filename'));
+        $this->assertEquals('Nom', Translator::translate('name'));
+        $this->assertEquals('Supprimer', Translator::translate('/Groups/delete/{{id}}'));
+        $this->assertEquals('groups.po', Translator::translate('filename'));
 
-        $result = Translator::__('Some string with {0} {1}', ['multiple', 'arguments']);
+        $result = Translator::translate('Some string with {0} {1}', ['multiple', 'arguments']);
         $expected = 'Some string with multiple arguments';
         $this->assertEquals($expected, $result);
 
         // Test Storage's live cache
-        $result = Translator::__('Some string with {0} {1}', ['other', 'arguments']);
+        $result = Translator::translate('Some string with {0} {1}', ['other', 'arguments']);
         $expected = 'Some string with other arguments';
         $this->assertEquals($expected, $result);
     }
@@ -113,7 +119,7 @@ class TranslatorTest extends TestCase
         Translator::domains(['groups_index', 'groups']);
         $this->assertFalse(Translator::tainted());
 
-        Translator::__('name');
+        Translator::translate('name');
         $this->assertTrue(Translator::tainted());
     }
 
@@ -125,12 +131,12 @@ class TranslatorTest extends TestCase
     public function testReset()
     {
         Translator::domains(['groups_index', 'groups']);
-        $result = Translator::__('name');
+        $result = Translator::translate('name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
 
         Translator::reset();
-        $result = Translator::__('name');
+        $result = Translator::translate('name');
         $expected = 'name';
         $this->assertEquals($expected, $result);
     }
@@ -162,14 +168,14 @@ class TranslatorTest extends TestCase
     {
         Translator::domains(['groups_index', 'groups']);
 
-        Translator::__('name');
-        Translator::__('Some string with {0}', ['arguments']);
+        Translator::translate('name');
+        Translator::translate('Some string with {0}', ['arguments']);
 
         $result = Translator::export();
         $expected = [
             'fr_FR' => [
                 'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => [
-                    '__' => [
+                    'a:0:{}' => [
                         'name' => 'Nom',
                         'Some string with {0}' => 'Some string with {0}',
                     ]
@@ -189,7 +195,7 @@ class TranslatorTest extends TestCase
         $cache = [
             'fr_FR' => [
                 'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => [
-                    '__' => [
+                    'a:0:{}' => [
                         'name' => 'Nom',
                     ]
                 ]
@@ -197,7 +203,7 @@ class TranslatorTest extends TestCase
         ];
         Translator::import($cache);
         Translator::domains(['groups_index', 'groups']);
-        $result = Translator::__('name');
+        $result = Translator::translate('name');
         $expected = 'Nom';
         $this->assertEquals($expected, $result);
     }
@@ -212,7 +218,7 @@ class TranslatorTest extends TestCase
         $cache1 = [
             'fr_FR' => [
                 'a:1:{i:0;s:13:"groups_index2";}' => [
-                    '__' => [
+                    'a:0:{}' => [
                         'Group.name' => 'Nom'
                     ]
                 ]
@@ -221,7 +227,7 @@ class TranslatorTest extends TestCase
         $cache2 = [
             'fr_FR' => [
                 'a:1:{i:0;s:13:"groups_index2";}' => [
-                    '__' => [
+                    'a:0:{}' => [
                         'Group.id' => 'Id'
                     ]
                 ]
@@ -234,7 +240,7 @@ class TranslatorTest extends TestCase
         $expected = [
             'fr_FR' => [
                 'a:1:{i:0;s:13:"groups_index2";}' => [
-                    '__' => [
+                    'a:0:{}' => [
                         'Group.name' => 'Nom',
                         'Group.id' => 'Id'
                     ]
@@ -245,31 +251,31 @@ class TranslatorTest extends TestCase
     }
 
     /**
-     * Test of the Translator::__() method with the sprintf formatter.
+     * Test of the Translator::translate() method with the sprintf formatter.
      *
-     * @covers Translator\Utility\Translator::__
+     * @covers Translator\Utility\Translator::translate
      */
     public function testUnderscoreWithSprintfFormatter()
     {
         \Cake\I18n\I18n::defaultFormatter('sprintf');
 
-        $result = Translator::__('Some string with %s %s', ['multiple', 'arguments']);
+        $result = Translator::translate('Some string with %s %s', ['multiple', 'arguments']);
         $expected = 'Some string with multiple arguments';
         $this->assertEquals($expected, $result);
     }
 
     /**
-     * Test of the Translator::__() method with a wrong formatter.
+     * Test of the Translator::translate() method with a wrong formatter.
      *
      * @expectedException        \Aura\Intl\Exception\FormatterNotMapped
      * @expectedExceptionMessage sprintfX
      *
-     * @covers Translator\Utility\Translator::__
+     * @covers Translator\Utility\Translator::translate
      */
     public function testUnderscoreWithWrongFormatter()
     {
         \Cake\I18n\I18n::defaultFormatter('sprintfX');
 
-        Translator::__('Some string with {0} {1}', ['multiple', 'arguments']);
+        Translator::translate('Some string with {0} {1}', ['multiple', 'arguments']);
     }
 }

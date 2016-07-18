@@ -1,0 +1,12 @@
+msgid "horse"
+msgid_plural "horses"
+msgstr[0] "cheval"
+msgstr[1] "chevaux"
+
+msgctxt "context1"
+msgid "X"
+msgstr "X"
+
+msgctxt "context2"
+msgid "X"
+msgstr "La valeur X"

@@ -27,6 +27,8 @@ class TranslatorAutoloadComponentTest extends TestCase
 {
     protected $Controller = null;
 
+    protected $defaultLocale = null;
+
     protected $locales = null;
 
     /**
@@ -81,6 +83,9 @@ class TranslatorAutoloadComponentTest extends TestCase
         $this->locales = Configure::read('App.paths.locales');
         $locales = Plugin::classPath('Translator') . DS . '..' . DS . 'tests' . DS . 'Locale' . DS;
         Configure::write('App.paths.locales', $locales);
+
+        $this->defaultLocale = Configure::read('App.defaultLocale');
+        Configure::write('App.defaultLocale', 'fr_FR');
     }
 
     /**
@@ -90,6 +95,7 @@ class TranslatorAutoloadComponentTest extends TestCase
     {
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
+        Configure::write('App.defaultLocale', $this->defaultLocale);
         $this->tearDownTranslator();
     }
 
@@ -220,7 +226,7 @@ class TranslatorAutoloadComponentTest extends TestCase
         $cache = [
             'fr_FR' => [
                     'a:0:{}' => [
-                            '__' => [
+                            'a:0:{}' => [
                                     'name' => 'name'
                             ]
                     ]
@@ -290,14 +296,14 @@ class TranslatorAutoloadComponentTest extends TestCase
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
 
-        $Instance->__('name');
+        $Instance->translate('name');
 
         $this->Controller->Translator->save();
 
         $expected = [
             'fr_FR' => [
                     'a:0:{}' => [
-                            '__' => [
+                            'a:0:{}' => [
                                     'name' => 'name'
                             ]
                     ]
@@ -318,7 +324,7 @@ class TranslatorAutoloadComponentTest extends TestCase
 
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
-        $Instance->__('name');
+        $Instance->translate('name');
 
         $this->Controller->Translator->expects($this->once())->method('load');
 
@@ -338,7 +344,7 @@ class TranslatorAutoloadComponentTest extends TestCase
 
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
-        $Instance->__('name');
+        $Instance->translate('name');
 
         $this->Controller->Translator->expects($this->once())->method('save');
 
@@ -358,7 +364,7 @@ class TranslatorAutoloadComponentTest extends TestCase
 
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
-        $Instance->__('name');
+        $Instance->translate('name');
 
         $this->Controller->Translator->expects($this->once())->method('load');
 
@@ -378,7 +384,7 @@ class TranslatorAutoloadComponentTest extends TestCase
 
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
-        $Instance->__('name');
+        $Instance->translate('name');
 
         $this->Controller->Translator->expects($this->once())->method('load');
 
@@ -398,7 +404,7 @@ class TranslatorAutoloadComponentTest extends TestCase
 
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
-        $Instance->__('name');
+        $Instance->translate('name');
 
         $this->Controller->Translator->expects($this->once())->method('save');
 

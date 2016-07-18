@@ -13,7 +13,9 @@
 	<!-- Build -->
 	<target name="quality" depends="clean,lint,phpunit,phploc,phpdoc,phpcs,phpmd,pdepend,phpcpd,phpcb"/>
 	<target name="build" depends="lint,phpunit"/>
-	<target name="lint" depends="php-lint,sql-lint,po-lint,js-lint,css-lint"/>
+    <!-- FIXME: msgfmt => plural handling is a GNU gettext extension -->
+	<!--<target name="lint" depends="php-lint,sql-lint,po-lint,js-lint,css-lint"/>-->
+	<target name="lint" depends="php-lint,sql-lint,js-lint,css-lint"/>
 
 	<!-- Nettoyage du répertoire tmp de CakePHP et des logs précédents -->
 	<target name="clear">
@@ -64,7 +66,7 @@
 		Lorsque plusieurs traductions du même msgid sont présentes dans un fichier
 		.po, c'est la dernière qui est prise en compte.
 
-                sudo aptitude install gettext
+        sudo aptitude install gettext
 	-->
 	<target name="po-lint">
 		<apply executable="msgfmt" dir="${dir.cakephp.plugin}" failonerror="on" logerror="on">

@@ -8,6 +8,8 @@ Assuming the plugin is installed under plugins/Translator.
 Add the following to config/bootstrap.php:
 ```
     Plugin::load('Translator', ['autoload' => true]);
+    // or to get the shortcut __m(), __mn(), __mx() and __mxn() functions
+    Plugin::load('Translator', ['autoload' => true, 'bootstrap' => true]);
 
 ```
 

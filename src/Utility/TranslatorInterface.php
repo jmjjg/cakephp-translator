@@ -73,12 +73,12 @@ interface TranslatorInterface
     /**
      * Returns a translated string if one is found, otherwise, the submitted message.
      *
-     * @see __()
+     * @see I18n::translate()
      *
-     * @param string $singular The message key.
-     * @param array $values Token values to interpolate into the
+     * @param string $key The message key.
+     * @param array $tokens Token values to interpolate into the
      * message.
      * @return string The translated message with tokens replaced.
      */
-    public static function __($singular, array $values = []);
+    public static function translate($key, array $tokens = []);
 }

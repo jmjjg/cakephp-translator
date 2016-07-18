@@ -10,6 +10,7 @@ use Aura\Intl\FormatterLocator;
 use Cake\I18n\Formatter\IcuFormatter;
 use Cake\I18n\Formatter\SprintfFormatter;
 use Cake\I18n\I18n;
+use Cake\Utility\Hash;
 use Translator\Utility\Storage;
 use Translator\Utility\TranslatorInterface;
 
@@ -78,7 +79,7 @@ class Translator implements TranslatorInterface
             },
             'default' => function () {
                 return new IcuFormatter;
-            },
+            }
         ]);
     }
 
@@ -207,21 +208,28 @@ class Translator implements TranslatorInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Translates the message indicated by they key, replacing token values
+     * along the way.
      *
-     * @see __()
+     * @see I18n::translate()
      *
      * @param string $key The message key.
-     * @param array $values Token values to interpolate into the
+     * @param array $tokens Token values to interpolate into the
      * message.
      * @return string The translated message with tokens replaced.
      */
-    public static function __($key, array $values = [])
+    public static function translate($key, array $tokens = [])
     {
         $instance = self::getInstance();
         $key = (string)$key;
 
-        $path = [$instance::lang(), $instance::$_domainsKey, __FUNCTION__, $key];
+        $params = [
+            '_count' => isset($tokens['_count']) ? $tokens['_count'] : null,
+            '_singular' => isset($tokens['_singular']) ? $tokens['_singular'] : null,
+            '_context' => isset($tokens['_context']) ? $tokens['_context'] : null
+        ];
+
+        $path = [$instance::lang(), $instance::$_domainsKey, serialize(Hash::filter($params)), $key];
         if (Storage::exists($instance::$_cache, $path)) {
             $message = Storage::get($instance::$_cache, $path);
         } else {
@@ -243,12 +251,12 @@ class Translator implements TranslatorInterface
 
         // C/P from CakePHP's Translator::translate()
         // are there token replacement values?
-        if (! $values) {
+        if (! $tokens) {
             // no, return the message string as-is
             return $message;
         }
 
         // run message string through I18n default formatter to replace tokens with values
-        return $instance::$_formatters->get(I18n::defaultFormatter())->format($instance::lang(), $message, $values);
+        return $instance::$_formatters->get(I18n::defaultFormatter())->format($instance::lang(), $message, $tokens);
     }
 }
