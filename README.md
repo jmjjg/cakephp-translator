@@ -143,7 +143,7 @@ foreach ($cells as $path => $cell) {
 ## Sample extended classes
 
 ### Translator Utility
-
+```
 namespace App\Utility;
 
 use Cake\I18n\I18n;
@@ -154,31 +154,6 @@ use Translator\Utility\TranslatorInterface;
 
 class Translator extends \Translator\Utility\Translator implements TranslatorInterface
 {
-    public static function path($key, $tokens)
-    {
-        $instance = self::getInstance();
-        $key = (string)$key;
-
-        $params = [
-            '_count' => isset($tokens['_count']) ? $tokens['_count'] : null,
-            '_singular' => isset($tokens['_singular']) ? $tokens['_singular'] : null,
-            '_context' => isset($tokens['_context']) ? $tokens['_context'] : null
-        ];
-
-        return [$instance::lang(), $instance::$_domainsKey, serialize(Hash::filter($params)), $key];
-    }
-
-    /**
-     * Translates the message indicated by they key, replacing token values
-     * along the way.
-     *
-     * @see I18n::translate()
-     *
-     * @param string $key The message key.
-     * @param array $tokens Token values to interpolate into the
-     * message.
-     * @return string The translated message with tokens replaced.
-     */
     public static function translate($key, array $tokens = [])
     {
         $instance = self::getInstance();
@@ -188,8 +163,8 @@ class Translator extends \Translator\Utility\Translator implements TranslatorInt
         if (Storage::exists($instance::$_cache, $path)) {
             $message = Storage::get($instance::$_cache, $path);
         } else {
-            // FIXME: $tokens! with parent
-            $message = parent::translate($key, $tokens);
+            // TODO: $tokens! with parent (unit tests)
+            $message = parent::translate($key, json_decode($path[2]));
 
             if ($message === $key) {
                 $tokens = explode('.', $message);
@@ -214,3 +189,4 @@ class Translator extends \Translator\Utility\Translator implements TranslatorInt
         return $instance::$_formatters->get(I18n::defaultFormatter())->format($instance::lang(), $message, $tokens);
     }
 }
+```
