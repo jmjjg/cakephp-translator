@@ -204,7 +204,7 @@ class TranslatorAutoloadComponent extends Component
      */
     public function load()
     {
-        if( in_array( $this->config('cache'), array(true, null), true ) ) {
+        if (in_array($this->config('cache'), [true, null], true)) {
             $translator = $this->_translator();
 
             $translator->domains($this->domains());
@@ -224,7 +224,7 @@ class TranslatorAutoloadComponent extends Component
      */
     public function save()
     {
-        if( in_array( $this->config('cache'), array(true, null), true ) ) {
+        if (in_array($this->config('cache'), [true, null], true)) {
             $translator = $this->_translator();
 
             if ($translator->tainted()) {

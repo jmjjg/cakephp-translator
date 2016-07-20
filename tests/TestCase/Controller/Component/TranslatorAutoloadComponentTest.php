@@ -96,6 +96,7 @@ class TranslatorAutoloadComponentTest extends TestCase
         parent::tearDown();
         Configure::write('App.paths.locales', $this->locales);
         Configure::write('App.defaultLocale', $this->defaultLocale);
+        Cache::clearAll();
         $this->tearDownTranslator();
     }
 
@@ -176,6 +177,7 @@ class TranslatorAutoloadComponentTest extends TestCase
         $this->Controller->Translator->initialize([]);
         $expected = [
             'translatorClass' => '\\Translator\\Utility\\Translator',
+            'cache' => true,
             'events' => [
                 'Controller.initialize' => 'load',
                 'Controller.startup' => null,
@@ -207,7 +209,6 @@ class TranslatorAutoloadComponentTest extends TestCase
         $Instance = $translatorClass::getInstance();
 
         $this->Controller->Translator->load();
-
         $this->assertEquals([], $Instance->export());
     }
 
@@ -225,8 +226,8 @@ class TranslatorAutoloadComponentTest extends TestCase
 
         $cache = [
             'fr_FR' => [
-                    'a:0:{}' => [
-                            'a:0:{}' => [
+                    '["posts_index","posts","default"]' => [
+                            '[]' => [
                                     'name' => 'name'
                             ]
                     ]
@@ -296,14 +297,15 @@ class TranslatorAutoloadComponentTest extends TestCase
         $translatorClass = $this->Controller->Translator->config('translatorClass');
         $Instance = $translatorClass::getInstance();
 
+        $this->Controller->Translator->load();//INFO: to setup the translator with the correct domains...
         $Instance->translate('name');
 
         $this->Controller->Translator->save();
 
         $expected = [
             'fr_FR' => [
-                    'a:0:{}' => [
-                            'a:0:{}' => [
+                    '["posts_index","posts","default"]' => [
+                            '[]' => [
                                     'name' => 'name'
                             ]
                     ]

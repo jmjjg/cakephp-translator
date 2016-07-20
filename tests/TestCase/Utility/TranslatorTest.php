@@ -150,12 +150,12 @@ class TranslatorTest extends TestCase
     {
         Translator::domains(['groups_index', 'groups']);
         $result = Translator::domainsKey();
-        $expected = 'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}';
+        $expected = '["groups_index","groups"]';
         $this->assertEquals($expected, $result);
 
         Translator::reset();
         $result = Translator::domainsKey();
-        $expected = 'a:0:{}';
+        $expected = '[]';
         $this->assertEquals($expected, $result);
     }
 
@@ -174,8 +174,8 @@ class TranslatorTest extends TestCase
         $result = Translator::export();
         $expected = [
             'fr_FR' => [
-                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => [
-                    'a:0:{}' => [
+                '["groups_index","groups"]' => [
+                    '[]' => [
                         'name' => 'Nom',
                         'Some string with {0}' => 'Some string with {0}',
                     ]
@@ -194,8 +194,8 @@ class TranslatorTest extends TestCase
     {
         $cache = [
             'fr_FR' => [
-                'a:2:{i:0;s:12:"groups_index";i:1;s:6:"groups";}' => [
-                    'a:0:{}' => [
+                '["groups_index","groups"]' => [
+                    '[]' => [
                         'name' => 'Nom',
                     ]
                 ]
@@ -217,18 +217,20 @@ class TranslatorTest extends TestCase
     {
         $cache1 = [
             'fr_FR' => [
-                'a:1:{i:0;s:13:"groups_index2";}' => [
-                    'a:0:{}' => [
-                        'Group.name' => 'Nom'
+                '[groups_index2]' => [
+                    '[]' => [
+                        'Group.name' => 'Nom',
+                        'Group.description' => 'Description cache 1'
                     ]
                 ]
             ]
         ];
         $cache2 = [
             'fr_FR' => [
-                'a:1:{i:0;s:13:"groups_index2";}' => [
-                    'a:0:{}' => [
-                        'Group.id' => 'Id'
+                '[groups_index2]' => [
+                    '[]' => [
+                        'Group.id' => 'Id',
+                        'Group.description' => 'Description cache 2'
                     ]
                 ]
             ]
@@ -239,9 +241,10 @@ class TranslatorTest extends TestCase
         $result = Translator::export();
         $expected = [
             'fr_FR' => [
-                'a:1:{i:0;s:13:"groups_index2";}' => [
-                    'a:0:{}' => [
+                '[groups_index2]' => [
+                    '[]' => [
                         'Group.name' => 'Nom',
+                        'Group.description' => 'Description cache 2',
                         'Group.id' => 'Id'
                     ]
                 ]

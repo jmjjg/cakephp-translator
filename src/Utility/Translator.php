@@ -107,7 +107,7 @@ class Translator implements TranslatorInterface
     {
         $instance = self::getInstance();
 
-        $instance::$_domainsKey = 'a:0:{}';
+        $instance::$_domainsKey = '[]';
         $instance::$_domains = [];
         $instance::$_cache = [];
         $instance::$_tainted = false;
@@ -137,7 +137,7 @@ class Translator implements TranslatorInterface
             return $instance::$_domains;
         } else {
             $instance::$_domains = array_values((array)$domains);
-            $instance::$_domainsKey = serialize($instance::$_domains);
+            $instance::$_domainsKey = json_encode($instance::$_domains);
 
             return $instance::$_domains;
         }
@@ -208,6 +208,27 @@ class Translator implements TranslatorInterface
     }
 
     /**
+     *
+     * @param string $key The message key.
+     * @param array $tokens Token values to interpolate into the
+     * message.
+     * @return array The array cache path for the key and tokens.
+     */
+    public static function path($key, array $tokens = [])
+    {
+        $instance = self::getInstance();
+        $key = (string)$key;
+
+        $params = [
+            '_count' => isset($tokens['_count']) ? $tokens['_count'] : null,
+            '_singular' => isset($tokens['_singular']) ? $tokens['_singular'] : null,
+            '_context' => isset($tokens['_context']) ? $tokens['_context'] : null
+        ];
+
+        return [$instance::lang(), $instance::$_domainsKey, json_encode(Hash::filter($params)), $key];
+    }
+
+    /**
      * Translates the message indicated by they key, replacing token values
      * along the way.
      *
@@ -223,13 +244,7 @@ class Translator implements TranslatorInterface
         $instance = self::getInstance();
         $key = (string)$key;
 
-        $params = [
-            '_count' => isset($tokens['_count']) ? $tokens['_count'] : null,
-            '_singular' => isset($tokens['_singular']) ? $tokens['_singular'] : null,
-            '_context' => isset($tokens['_context']) ? $tokens['_context'] : null
-        ];
-
-        $path = [$instance::lang(), $instance::$_domainsKey, serialize(Hash::filter($params)), $key];
+        $path = $instance::path($key, $tokens);
         if (Storage::exists($instance::$_cache, $path)) {
             $message = Storage::get($instance::$_cache, $path);
         } else {
