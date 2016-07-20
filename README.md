@@ -140,6 +140,77 @@ foreach ($cells as $path => $cell) {
 }
 ```
 
-## Example extended classes
+## Sample extended classes
 
 ### Translator Utility
+
+namespace App\Utility;
+
+use Cake\I18n\I18n;
+use Cake\Utility\Hash;
+use Cake\Utility\Inflector;
+use Translator\Utility\Storage;
+use Translator\Utility\TranslatorInterface;
+
+class Translator extends \Translator\Utility\Translator implements TranslatorInterface
+{
+    public static function path($key, $tokens)
+    {
+        $instance = self::getInstance();
+        $key = (string)$key;
+
+        $params = [
+            '_count' => isset($tokens['_count']) ? $tokens['_count'] : null,
+            '_singular' => isset($tokens['_singular']) ? $tokens['_singular'] : null,
+            '_context' => isset($tokens['_context']) ? $tokens['_context'] : null
+        ];
+
+        return [$instance::lang(), $instance::$_domainsKey, serialize(Hash::filter($params)), $key];
+    }
+
+    /**
+     * Translates the message indicated by they key, replacing token values
+     * along the way.
+     *
+     * @see I18n::translate()
+     *
+     * @param string $key The message key.
+     * @param array $tokens Token values to interpolate into the
+     * message.
+     * @return string The translated message with tokens replaced.
+     */
+    public static function translate($key, array $tokens = [])
+    {
+        $instance = self::getInstance();
+        $key = (string)$key;
+
+        $path = $instance::path($key, $tokens);
+        if (Storage::exists($instance::$_cache, $path)) {
+            $message = Storage::get($instance::$_cache, $path);
+        } else {
+            // FIXME: $tokens! with parent
+            $message = parent::translate($key, $tokens);
+
+            if ($message === $key) {
+                $tokens = explode('.', $message);
+                if (count($tokens)>=2) {
+                    $domain = Inflector::underscore($tokens[count($tokens)-2]);
+                    $message = I18n::translator($domain)->translate($key);
+                }
+            }
+
+            $instance::$_cache = Storage::insert($instance::$_cache, $path, $message);
+            $instance::$_tainted = true;
+        }
+
+        // C/P from CakePHP's Translator::translate()
+        // are there token replacement values?
+        if (! $tokens) {
+            // no, return the message string as-is
+            return $message;
+        }
+
+        // run message string through I18n default formatter to replace tokens with values
+        return $instance::$_formatters->get(I18n::defaultFormatter())->format($instance::lang(), $message, $tokens);
+    }
+}
