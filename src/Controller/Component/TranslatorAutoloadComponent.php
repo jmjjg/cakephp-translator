@@ -72,6 +72,7 @@ class TranslatorAutoloadComponent extends Component
      */
     protected $_defaultConfig = [
         'translatorClass' => '\\Translator\\Utility\\Translator',
+        'cache' => true,
         'events' => [
             'Controller.initialize' => 'load',
             'Controller.startup' => null,
@@ -203,14 +204,16 @@ class TranslatorAutoloadComponent extends Component
      */
     public function load()
     {
-        $translator = $this->_translator();
+        if( in_array( $this->config('cache'), array(true, null), true ) ) {
+            $translator = $this->_translator();
 
-        $translator->domains($this->domains());
-        $cacheKey = $this->cacheKey();
-        $cache = Cache::read($cacheKey);
+            $translator->domains($this->domains());
+            $cacheKey = $this->cacheKey();
+            $cache = Cache::read($cacheKey);
 
-        if ($cache !== false) {
-            $translator->import($cache);
+            if ($cache !== false) {
+                $translator->import($cache);
+            }
         }
     }
 
@@ -221,12 +224,14 @@ class TranslatorAutoloadComponent extends Component
      */
     public function save()
     {
-        $translator = $this->_translator();
+        if( in_array( $this->config('cache'), array(true, null), true ) ) {
+            $translator = $this->_translator();
 
-        if ($translator->tainted()) {
-            $cacheKey = $this->cacheKey();
-            $cache = $translator->export();
-            Cache::write($cacheKey, $cache);
+            if ($translator->tainted()) {
+                $cacheKey = $this->cacheKey();
+                $cache = $translator->export();
+                Cache::write($cacheKey, $cache);
+            }
         }
     }
 

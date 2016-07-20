@@ -49,6 +49,10 @@ class AppController extends Controller
 The translatorClass needs to implement the Translator\Utility\TranslatorInterface.
 Default: '\\Translator\\Utility\\Translator'
 
+#### cache
+Wether or not to use merged translations caching.
+Default: true
+
 #### events
 
 To get the translations available anywhere in the controller and in the
@@ -135,3 +139,7 @@ foreach ($cells as $path => $cell) {
     }
 }
 ```
+
+## Example extended classes
+
+### Translator Utility
