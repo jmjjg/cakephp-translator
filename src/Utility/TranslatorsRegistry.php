@@ -1,14 +1,21 @@
 <?php
-
+/**
+ * Source code for the TranslatorsRegistry utility class from the Translator plugin.
+ *
+ * @author Christian Buffin
+ */
 namespace Translator\Utility;
 
 use Cake\Core\App;
 use Cake\Core\ObjectRegistry;
+
 //use Cake\Event\EventDispatcherInterface;
 //use Cake\Event\EventDispatcherTrait;
 //use Cake\Event\EventManager;
 
 /**
+ * The Translator class...
+ *
  * Sample usage:
  * $TranslatorsRegistry = TranslatorsRegistry::getinstance();
  * $TranslatorsRegistry->load('AppTranslator', ['className' => 'App.Translator']);
@@ -20,8 +27,8 @@ use Cake\Core\ObjectRegistry;
  * ];
  * debug($debug);
  */
-class TranslatorsRegistry extends ObjectRegistry
 //implements EventDispatcherInterface
+class TranslatorsRegistry extends ObjectRegistry
 {
     protected static $_instance = null;
 
@@ -29,6 +36,10 @@ class TranslatorsRegistry extends ObjectRegistry
 
 //    use EventDispatcherTrait;
 
+    /**
+     *
+     * @return TranslatorsRegistry
+     */
     public static function getinstance()
     {
         if (null === self::$_instance) {
@@ -44,28 +55,51 @@ class TranslatorsRegistry extends ObjectRegistry
 //        $this->_eventManager = new EventManager();
 //    }
 
+    /**
+     *
+     * @param string $class
+     * @return string
+     */
     protected function _resolveClassName($class)
     {
         return App::className($class, 'Utility');
     }
 
+    /**
+     *
+     * @param string $class
+     * @param string $plugin
+     * @return void
+     * @throws \RuntimeException
+     */
     protected function _throwMissingClassError($class, $plugin)
     {
         $msg = sprintf(__d('cake_dev', 'Missing utility class %s'), ltrim("{$plugin}.{$class}", '.'));
         throw new \RuntimeException($msg, 500);
     }
 
+    /**
+     *
+     * @return \Translator\Utility\TranslatorInterface
+     */
     public function getDefault()
     {
         return $this->_default;
     }
 
-    // TODO: $config['domains'] ?
+    /**
+     *
+     * @todo $config['domains'] ?
+     *
+     * @param string $objectName
+     * @param array $config
+     * @return \Translator\Utility\TranslatorInterface
+     */
     public function load($objectName, $config = [])
     {
         $result = parent::load($objectName, $config);
 
-        if( null === $this->_default ) {
+        if (null === $this->_default) {
             $this->_default = $result;
         }
 
@@ -76,9 +110,9 @@ class TranslatorsRegistry extends ObjectRegistry
 
     /**
      *
-     * @param type $class
-     * @param type $alias
-     * @param type $config
+     * @param string $class
+     * @param string $alias
+     * @param array $config
      * @return \Translator\Utility\TranslatorInterface
      * @throws \RuntimeException
      */
