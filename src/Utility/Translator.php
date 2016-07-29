@@ -53,7 +53,7 @@ class Translator implements TranslatorInterface
      *
      * @var TranslatorInterface
      */
-    protected static $_this = null;
+    protected static $_instance = null;
 
     /**
      * Formatter to be used.
@@ -71,8 +71,6 @@ class Translator implements TranslatorInterface
      */
     protected function __construct()
     {
-        self::$_this = $this;
-
         self::$_formatters = new FormatterLocator([
             'sprintf' => function () {
                 return new SprintfFormatter;
@@ -90,12 +88,12 @@ class Translator implements TranslatorInterface
      */
     public static function getInstance()
     {
-        if (self::$_this === null) {
+        if (self::$_instance === null) {
             $className = get_called_class();
-            self::$_this = new $className;
+            self::$_instance = new $className;
         }
 
-        return self::$_this;
+        return self::$_instance;
     }
 
     /**
