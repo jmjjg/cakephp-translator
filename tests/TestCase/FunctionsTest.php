@@ -96,11 +96,11 @@ class FunctionsTest extends TestCase
     {
         Translator::domains(['groups_index', 'groups', 'default']);
         $this->assertNull(__mxn('context1', null, 'horses', 1));
-//        $this->assertEquals('cheval', __mxn('context1', 'horse', 'horses', 1));
-//        $this->assertEquals('chevaux', __mxn('context1', 'horse', 'horses', 2));
+        $this->assertEquals('cheval', __mxn('context1', 'horse', 'horses', 1));
+        $this->assertEquals('chevaux', __mxn('context1', 'horse', 'horses', 2));
 
         $this->assertNull(__mxn('context2', null, 'horses', 1));
-//        $this->assertEquals('rosse', __mxn('context2', 'horse', 'horses', 1));
-//        $this->assertEquals('rosses', __mxn('context2', 'horse', 'horses', 2));
+        $this->assertEquals('rosse', __mxn('context2', 'horse', 'horses', 1));
+        $this->assertEquals('rosses', __mxn('context2', 'horse', 'horses', 2));
     }
 }
