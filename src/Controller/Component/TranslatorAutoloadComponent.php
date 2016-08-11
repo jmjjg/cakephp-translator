@@ -13,6 +13,8 @@ use Cake\Event\Event;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 
+use Translator\Utility\TranslatorsRegistry;
+
 /**
  * The TranslatorAutoloadComponent class automatically loads and saves in the cache
  * the latest translations used for the current URL's domains.
@@ -21,7 +23,7 @@ use Cake\Utility\Inflector;
  *
  * 1. translatorClass
  * The translatorClass needs to implement the Translator\Utility\TranslatorInterface.
- * Default: '\\Translator\\Utility\\Translator'
+ * Default: 'Translator.Translator'
  *
  * 2. events
  *
@@ -71,7 +73,7 @@ class TranslatorAutoloadComponent extends Component
      * @var array
      */
     protected $_defaultConfig = [
-        'translatorClass' => '\\Translator\\Utility\\Translator',
+        'translatorClass' => 'Translator.Translator',
         'cache' => true,
         'events' => [
             'Controller.initialize' => 'load',
@@ -175,26 +177,41 @@ class TranslatorAutoloadComponent extends Component
      * @return TranslatorInterface
      * @throws \RuntimeException
      */
-    protected function _translator()
+    public function translator()
     {
-        if ($this->_translator === null) {
-            $translatorClass = $this->config('translatorClass');
+//        if ($this->_translator === null) {
+//            $translatorClass = $this->config('translatorClass');
+//
+//            if (false === class_exists($translatorClass)) {
+//                $msg = sprintf(__d('cake_dev', 'Missing utility class %s'), $translatorClass);
+//                throw new \RuntimeException($msg, 500);
+//            }
+//
+//            if (false === in_array('Translator\Utility\TranslatorInterface', class_implements($translatorClass))) {
+//                $msg = sprintf(__d('cake_dev', 'Utility class %s does not implement Translator\Utility\TranslatorInterface'), $translatorClass);
+//                throw new \RuntimeException($msg, 500);
+//            }
+//
+//
+//            $this->_translator = $translatorClass::getInstance();
+//        }
+//
+//        return $this->_translator;
 
-            if (false === class_exists($translatorClass)) {
-                $msg = sprintf(__d('cake_dev', 'Missing utility class %s'), $translatorClass);
-                throw new \RuntimeException($msg, 500);
-            }
-
-            if (false === in_array('Translator\Utility\TranslatorInterface', class_implements($translatorClass))) {
-                $msg = sprintf(__d('cake_dev', 'Utility class %s does not implement Translator\Utility\TranslatorInterface'), $translatorClass);
-                throw new \RuntimeException($msg, 500);
-            }
-
-
-            $this->_translator = $translatorClass::getInstance();
+        $translatorClass = $this->config('translatorClass');
+        $alias = str_replace('.', '', $translatorClass);
+        $registry = TranslatorsRegistry::getInstance();
+        if (false === $registry->has($alias)) {
+            $registry->load($alias, ['className' => $translatorClass]);
         }
 
-        return $this->_translator;
+        $translator = $registry->get($alias);
+//        if (false === in_array('Translator\Utility\TranslatorInterface', class_implements($translatorClass))) {
+//            $msg = sprintf(__d('cake_dev', 'Utility class %s does not implement Translator\Utility\TranslatorInterface'), $translatorClass);
+//            throw new \RuntimeException($msg, 500);
+//        }
+
+        return $translator;
     }
 
     /**
@@ -205,7 +222,7 @@ class TranslatorAutoloadComponent extends Component
     public function load()
     {
         if (in_array($this->config('cache'), [true, null], true)) {
-            $translator = $this->_translator();
+            $translator = $this->translator();
 
             $translator->domains($this->domains());
             $cacheKey = $this->cacheKey();
@@ -225,7 +242,7 @@ class TranslatorAutoloadComponent extends Component
     public function save()
     {
         if (in_array($this->config('cache'), [true, null], true)) {
-            $translator = $this->_translator();
+            $translator = $this->translator();
 
             if ($translator->tainted()) {
                 $cacheKey = $this->cacheKey();

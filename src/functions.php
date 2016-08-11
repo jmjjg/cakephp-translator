@@ -2,7 +2,7 @@
 /**
  * Utility shorthand functions for the Translator plugin.
  */
-use Translator\Utility\Translator;
+use Translator\Utility\TranslatorsRegistry;
 
 if (!function_exists('__m')) {
     /**
@@ -20,7 +20,7 @@ if (!function_exists('__m')) {
         }
 
         $arguments = func_num_args() === 2 ? (array)$args : array_slice(func_get_args(), 1);
-        return Translator::translate($singular, $arguments);
+        return TranslatorsRegistry::getInstance()->getDefault()->translate($singular, $arguments);
     }
 }
 
@@ -43,7 +43,7 @@ if (!function_exists('__mn')) {
         }
 
         $arguments = func_num_args() === 4 ? (array)$args : array_slice(func_get_args(), 3);
-        return Translator::translate(
+        return TranslatorsRegistry::getInstance()->getDefault()->translate(
             $plural,
             ['_count' => $count, '_singular' => $singular] + $arguments
         );
@@ -69,7 +69,7 @@ if (!function_exists('__mx')) {
         }
 
         $arguments = func_num_args() === 3 ? (array)$args : array_slice(func_get_args(), 2);
-        return Translator::translate($singular, ['_context' => $context] + $arguments);
+        return TranslatorsRegistry::getInstance()->getDefault()->translate($singular, ['_context' => $context] + $arguments);
     }
 }
 
@@ -95,7 +95,7 @@ if (!function_exists('__mxn')) {
         }
 
         $arguments = func_num_args() === 5 ? (array)$args : array_slice(func_get_args(), 2);
-        return Translator::translate(
+        return TranslatorsRegistry::getInstance()->getDefault()->translate(
             $plural,
             ['_count' => $count, '_singular' => $singular, '_context' => $context] + $arguments
         );
