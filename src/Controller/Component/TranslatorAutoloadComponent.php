@@ -73,7 +73,7 @@ class TranslatorAutoloadComponent extends Component
      * @var array
      */
     protected $_defaultConfig = [
-        'translatorClass' => 'Translator.Translator',
+        'translatorClass' => null,
         'cache' => true,
         'events' => [
             'Controller.initialize' => 'load',
@@ -199,13 +199,13 @@ class TranslatorAutoloadComponent extends Component
 //        return $this->_translator;
 
         $translatorClass = $this->config('translatorClass');
-        $alias = str_replace('.', '', $translatorClass);
+        $name = null === $translatorClass ? TranslatorsRegistry::defaultTranslator() : $translatorClass;
         $registry = TranslatorsRegistry::getInstance();
-        if (false === $registry->has($alias)) {
-            $registry->load($alias, ['className' => $translatorClass]);
+        if (false === $registry->has($name)) {
+            $registry->load($name, ['className' => $name]);
         }
 
-        $translator = $registry->get($alias);
+        $translator = $registry->get($name);
 //        if (false === in_array('Translator\Utility\TranslatorInterface', class_implements($translatorClass))) {
 //            $msg = sprintf(__d('cake_dev', 'Utility class %s does not implement Translator\Utility\TranslatorInterface'), $translatorClass);
 //            throw new \RuntimeException($msg, 500);

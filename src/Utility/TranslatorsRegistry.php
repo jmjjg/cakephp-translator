@@ -9,12 +9,8 @@ namespace Translator\Utility;
 use Cake\Core\App;
 use Cake\Core\ObjectRegistry;
 
-//use Cake\Event\EventDispatcherInterface;
-//use Cake\Event\EventDispatcherTrait;
-//use Cake\Event\EventManager;
-
 /**
- * The Translator class...
+ * The TranslatorsRegistry class...
  *
  * Sample usage:
  * $TranslatorsRegistry = TranslatorsRegistry::getinstance();
@@ -27,7 +23,6 @@ use Cake\Core\ObjectRegistry;
  * ];
  * debug($debug);
  */
-//implements EventDispatcherInterface
 class TranslatorsRegistry extends ObjectRegistry
 {
     /**
@@ -38,25 +33,11 @@ class TranslatorsRegistry extends ObjectRegistry
     protected static $_instance = null;
 
     /**
-     * The default translator alias.
-     *
-     * @var string
-     */
-    protected $_default = null;
-
-    /**
      * The default translator name.
      *
      * @var string
      */
-    protected $_defaultTranslator = 'Translator.Translator';
-
-//    use EventDispatcherTrait;
-
-//    protected function __construct()
-//    {
-//        $this->_eventManager = new EventManager();
-//    }
+    protected $_default = 'Translator.Translator';
 
     /**
      * Returns the instance of the registry.
@@ -65,12 +46,12 @@ class TranslatorsRegistry extends ObjectRegistry
      */
     public static function getinstance()
     {
-        if (null === self::$_instance) {
+        if (null === static::$_instance) {
             $className = get_called_class();
-            self::$_instance = new $className;
+            static::$_instance = new $className;
         }
 
-        return self::$_instance;
+        return static::$_instance;
     }
 
     /**
@@ -80,10 +61,42 @@ class TranslatorsRegistry extends ObjectRegistry
      */
     public static function clear()
     {
-        if (null !== self::$_instance) {
-            self::$_instance->reset();
-            self::$_instance = null;
+        if (null !== static::$_instance) {
+            static::$_instance->reset();
+            static::$_instance = null;
         }
+    }
+
+    /**
+     * Sets the name of the default translator.
+     * Defaults to 'Translator.Translator'
+     *
+     * If called with no arguments, it will return the currently configured value.
+     *
+     * @param string|null $name The name of the formatter to use.
+     * @return string The name of the formatter.
+     */
+    public static function defaultTranslator($name = null)
+    {
+        $instance = static::getinstance();
+        if (null !== $name) {
+            $instance->_default = $name;
+        }
+        return $instance->_default;
+    }
+
+    /**
+     * Get loaded object instance.
+     *
+     * @param string $name Name of object.
+     * @return object|null Object instance if loaded else null.
+     */
+    public function get($name)
+    {
+        if (false === isset($this->_loaded[$name])) {
+            $this->load($name);
+        }
+        return parent::get($name);
     }
 
     /**
@@ -112,29 +125,7 @@ class TranslatorsRegistry extends ObjectRegistry
     }
 
     /**
-     * Returns the first loaded translator object or an instance of the default
-     * translator.
-     *
-     * @see $_defaultTranslator
-     *
-     * @return \Translator\Utility\TranslatorInterface
-     */
-    public function getDefault()
-    {
-        if (0 === count($this->loaded())) {
-            $this->load(
-                str_replace('.', '', $this->_defaultTranslator),
-                ['className' => $this->_defaultTranslator]
-            );
-        }
-
-        return $this->get($this->_default);
-    }
-
-    /**
      * Loads/constructs a translator instance.
-     *
-     * @todo $config['domains'] ?
      *
      * @param string $objectName The name/class of the object to load.
      * @param array $config Additional settings to use when loading the object.
@@ -142,15 +133,8 @@ class TranslatorsRegistry extends ObjectRegistry
      */
     public function load($objectName, $config = [])
     {
-        if (0 === count($this->loaded())) {
-            $this->_default = $objectName;
-        }
-
-        $result = parent::load($objectName, $config);
-
-//        $this->_eventManager->on($result);//FIXME: Cake\Event\EventListenerInterface;, check if already loaded
-//        $this->dispatchEvent('Translator.onLoad');
-        return $result;
+        $config += ['className' => $objectName];
+        return parent::load($objectName, $config);
     }
 
     /**
