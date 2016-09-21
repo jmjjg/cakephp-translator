@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<ruleset name="phpcs">
+	<description>PHPCodeSniffer ruleset for the CakePHP 3 Translator plugin by jmjjg</description>
+
+    <rule ref="CakePHP"/>
+	<rule ref="PHPCompatibility"/>
+</ruleset>

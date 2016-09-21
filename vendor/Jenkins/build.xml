@@ -6,18 +6,19 @@
 	<property name="dir.cakephp.app" value="${basedir}" />
 	<property name="dir.cakephp.plugin" value="${dir.cakephp.app}/plugins/Translator" />
 	<property name="dir.cakephp.tmp" value="${dir.cakephp.app}/tmp" />
+    <property name="file.phpcs.ruleset" value="${dir.cakephp.plugin}/vendor/Jenkins/phpcs.xml" />
 	<property name="file.phpmd.ruleset" value="${dir.cakephp.plugin}/vendor/Jenkins/phpmd.xml" />
 	<property name="file.phpunit.config" value="${dir.cakephp.plugin}/vendor/Jenkins/phpunit.xml" />
 	<property name="ignorelist" value="*/tests/*,*/vendor/*" />
 
-	<!-- Build -->
+	<!-- High level targets -->
 	<target name="quality" depends="clean,lint,phpunit,phploc,phpdoc,phpcs,phpmd,pdepend,phpcpd,phpcb"/>
 	<target name="build" depends="lint,phpunit"/>
     <!-- FIXME: msgfmt => plural handling is a GNU gettext extension -->
 	<!--<target name="lint" depends="php-lint,sql-lint,po-lint,js-lint,css-lint"/>-->
-	<target name="lint" depends="php-lint,sql-lint,js-lint,css-lint"/>
+	<target name="lint" depends="php-lint,sql-lint,js-lint,css-lint,xml-lint"/>
 
-	<!-- Nettoyage du répertoire tmp de CakePHP et des logs précédents -->
+	<!-- Log and tmp folders cleanup -->
 	<target name="clear">
 		<delete verbose="true">
 			<fileset dir="${dir.cakephp.tmp}" excludes="**/.svn,**/empty" />
@@ -25,7 +26,7 @@
         <delete dir="${dir.ant.logs}" verbose="true" />
 	</target>
 
-	<!-- Création des répertoires -->
+	<!-- Log folders creation -->
 	<target name="clean" depends="clear">
 		<mkdir dir="${dir.ant.logs}" />
 		<mkdir dir="${dir.ant.logs}/api" />
@@ -34,7 +35,7 @@
 		<mkdir dir="${dir.ant.logs}/php-code-browser" />
 	</target>
 
-	<!-- Vérification de la syntaxe des fichiers .php et .ctp -->
+	<!-- Syntax checking for .php and .ctp files -->
 	<target name="php-lint">
 		<apply executable="php" dir="${dir.cakephp.plugin}" failonerror="on" logerror="on">
 			<arg line="-l"/>
@@ -46,7 +47,7 @@
 	</target>
 
 	<!--
-		Vérification de la syntaxe des fichiers SQL par le parseur de TranslatorQL
+		Syntax checking for .sql files (PostgreSQL)
 
 		sudo apt-get install python-pip
 		sudo apt-get install libecpg-dev
@@ -60,11 +61,7 @@
 	</target>
 
 	<!--
-		Vérification de la syntaxe des fichiers .po
-		@url http://stackoverflow.com/questions/9880259/detecting-errors-in-po-files
-
-		Lorsque plusieurs traductions du même msgid sont présentes dans un fichier
-		.po, c'est la dernière qui est prise en compte.
+		Syntax checking for .po files
 
         sudo aptitude install gettext
 	-->
@@ -81,8 +78,7 @@
 	</target>
 
 	<!--
-		Vérification de la syntaxe des fichiers .js
-		@url http://ariya.ofilabs.com/2012/10/javascript-validator-with-esprima.html
+		Syntax checking for .js files
 
 		sudo aptitude install nodejs nodejs-legacy npm
 		sudo npm install -g esprima
@@ -94,8 +90,7 @@
 	</target>
 
 	<!--
-		Vérification de la syntaxe des fichiers .css
-		@url https://github.com/stubbornella/csslint/wiki/Command-line-interface
+		Syntax checking for .css files
 
 		sudo aptitude install nodejs nodejs-legacy npm
 		sudo npm install -g csslint
@@ -108,7 +103,17 @@
 		</apply>
 	</target>
 
-	<!-- Tests untaires pour la qualité, avec écriture des résultats -->
+	<!-- Syntax checking for .xml and .xsl files -->
+	<target name="xml-lint">
+		<apply executable="xmllint" dir="${dir.cakephp.app}" failonerror="on" logerror="on">
+			<arg line="--noout"/>
+			<fileset
+				dir="${dir.cakephp.plugin}"
+				includes="**/*.xml,**/*.xsl"/>
+		</apply>
+	</target>
+
+	<!-- Unit tests -->
 	<target name="phpunit" depends="clean,php-lint">
 		<exec executable="vendor/bin/phpunit" dir="${basedir}" failonerror="true">
 			<arg line="--report-useless-tests
@@ -131,14 +136,12 @@
 	</target>
 
 	<!--
-		Documentation:
-			pear channel-discover pear.phpdoc.org
-			pear install phpdoc/phpDocumentor-alpha
-			extension=xmlreader.so
-			extension=xsl.so
+		Documentation
 
-			@see http://www.phpdoc.org/
-			@see http://daringfireball.net/projects/markdown/syntax
+        pear channel-discover pear.phpdoc.org
+        pear install phpdoc/phpDocumentor-alpha
+        extension=xmlreader.so
+        extension=xsl.so
 	-->
 	<target name="phpdoc" depends="clean,php-lint">
 		<exec executable="phpdoc" dir="${dir.cakephp.plugin}" failonerror="false" logerror="on">
@@ -149,14 +152,19 @@
 			</exec>
 	</target>
 
-	<!-- Checkstyle -->
-	<!-- vendor/bin/phpcs - -config-set installed_paths vendor/cakephp/cakephp-codesniffer -->
+	<!--
+        Checkstyle
+
+        mv vendor/wimg/php-compatibility vendor/wimg/PHPCompatibility
+        vendor/bin/phpcs - -config-set installed_paths vendor/cakephp/cakephp-codesniffer,vendor/wimg
+    -->
 	<target name="phpcs" depends="clean,php-lint">
 		<exec executable="vendor/bin/phpcs"
 			  dir="${basedir}"
 			  failonerror="false">
-			<arg line="--standard=CakePHP
+			<arg line="--standard=${file.phpcs.ruleset}
                        --extensions=php,ctp
+                       --runtime-set testVersion 5.6-7.0
                        --report-checkstyle=${dir.ant.logs}/phpcs.xml
                        ${dir.cakephp.plugin}/src ${dir.cakephp.plugin}/tests" />
 		</exec>
@@ -188,11 +196,6 @@
 	</target>
 
 	<!-- Copy/paste detector -->
-	<!--
-		-exclude Test
-		-exclude webroot/test.php
-		-exclude webroot/index.php
-	-->
 	<target name="phpcpd" depends="clean,php-lint">
 		<exec executable="phpcpd"
 			dir="${dir.cakephp.plugin}"
