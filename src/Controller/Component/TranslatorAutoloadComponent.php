@@ -174,7 +174,7 @@ class TranslatorAutoloadComponent extends Component
     /**
      * Returns the translator object, initializing it if needed.
      *
-     * @return TranslatorInterface
+     * @return \Translator\Utility\TranslatorInterface
      * @throws \RuntimeException
      */
     public function translator()
@@ -203,6 +203,7 @@ class TranslatorAutoloadComponent extends Component
         $registry = TranslatorsRegistry::getInstance();
         if (false === $registry->has($name)) {
             $registry->load($name, ['className' => $name]);
+            $registry->get($name)->domains($this->domains());
         }
 
         $translator = $registry->get($name);
@@ -224,7 +225,6 @@ class TranslatorAutoloadComponent extends Component
         if (in_array($this->config('cache'), [true, null], true)) {
             $translator = $this->translator();
 
-            $translator->domains($this->domains());
             $cacheKey = $this->cacheKey();
             $cache = Cache::read($cacheKey);
 
