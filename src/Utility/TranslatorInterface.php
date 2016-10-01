@@ -76,9 +76,9 @@ interface TranslatorInterface
      * @see I18n::translate()
      *
      * @param string $key The message key.
-     * @param array $tokens Token values to interpolate into the
+     * @param \ArrayIterator|array $tokens Token values to interpolate into the
      * message.
      * @return string The translated message with tokens replaced.
      */
-    public static function translate($key, array $tokens = []);
+    public static function translate($key, $tokens = null);
 }

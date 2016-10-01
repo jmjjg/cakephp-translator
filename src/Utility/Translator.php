@@ -227,20 +227,56 @@ class Translator implements TranslatorInterface
     }
 
     /**
+     * Utility function to run the message string through yje I18n default formatter
+     * to replace tokens with values, in a try / catch block.
+     *
+     * In case of a \Aura\Intl\Exception\CannotFormat exception, logs it at the
+     * debug level when in debug mode and returns the message.
+     *
+     * @param string $key The message key.
+     * @param \ArrayIterator|array $tokens Token values to interpolate into the
+     * message.
+     * @return string The translated message with tokens replaced.
+     */
+    protected static function tryFormat($message, $tokens)
+    {
+        $instance = self::getInstance();
+
+        try {
+            $formatter = $instance::$_formatters->get(I18n::defaultFormatter());
+            return $formatter->format($instance::lang(), $message, $tokens);
+        } catch (\Aura\Intl\Exception\CannotFormat $e) {
+            if (true === Configure::read('debug')) {
+                $message = sprintf(
+                    'Exception: %s in %s?\n%s',
+                    $e->getCode(),
+                    $e->getFile(),
+                    $e->getLine(),
+                    $e->getMessage()
+                );
+                \Cake\Log\Log::write(LOG_DEBUG, $message);
+            }
+
+            return $message;
+        }
+    }
+
+    /**
      * Translates the message indicated by they key, replacing token values
      * along the way.
      *
      * @see I18n::translate()
      *
      * @param string $key The message key.
-     * @param array $tokens Token values to interpolate into the
+     * @param \ArrayIterator|array $tokens Token values to interpolate into the
      * message.
      * @return string The translated message with tokens replaced.
      */
-    public static function translate($key, array $tokens = [])
+    public static function translate($key, $tokens = null)
     {
         $instance = self::getInstance();
         $key = (string)$key;
+        $tokens = true === is_a($tokens, '\Cake\ORM\Entity') ? $tokens->toArray() : (array)$tokens;
 
         $path = $instance::path($key, $tokens);
         if (Storage::exists($instance::$_cache, $path)) {
@@ -269,7 +305,6 @@ class Translator implements TranslatorInterface
             return $message;
         }
 
-        // run message string through I18n default formatter to replace tokens with values
-        return $instance::$_formatters->get(I18n::defaultFormatter())->format($instance::lang(), $message, $tokens);
+        return static::tryFormat($message, $tokens);
     }
 }
