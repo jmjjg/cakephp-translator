@@ -113,7 +113,7 @@
 		</apply>
 	</target>
 
-	<!-- Unit tests -->
+	<!-- Unit tests with coverage report -->
 	<target name="phpunit" depends="clean,php-lint">
 		<exec executable="vendor/bin/phpunit" dir="${basedir}" failonerror="true">
 			<arg line="--report-useless-tests
@@ -123,6 +123,17 @@
 					   --log-junit ${dir.ant.logs}/phpunit.xml
                        --coverage-html ${dir.ant.logs}/coverage
                        --coverage-clover ${dir.ant.logs}/phpunit.coverage.xml
+                       plugins/Translator/" />
+		</exec>
+	</target>
+
+	<!-- Unit tests only -->
+	<target name="phpunit_only">
+		<exec executable="vendor/bin/phpunit" dir="${basedir}" failonerror="true">
+			<arg line="--report-useless-tests
+                       --verbose
+                       --debug
+					   --configuration ${file.phpunit.config}
                        plugins/Translator/" />
 		</exec>
 	</target>
