@@ -42,7 +42,7 @@ class TranslatorsRegistry extends ObjectRegistry
     /**
      * Returns the instance of the registry.
      *
-     * @return Translator\Utility\TranslatorsRegistry
+     * @return \Translator\Utility\TranslatorsRegistry
      */
     public static function getinstance()
     {
@@ -89,7 +89,7 @@ class TranslatorsRegistry extends ObjectRegistry
      * Get loaded object instance.
      *
      * @param string $name Name of object.
-     * @return object|null Object instance if loaded else null.
+     * @return \Translator\Utility\TranslatorInterface|null Object instance if loaded else null.
      */
     public function get($name)
     {
