@@ -14,8 +14,6 @@
 	<!-- High level targets -->
 	<target name="quality" depends="clean,lint,phpunit,phploc,phpdoc,phpcs,phpmd,pdepend,phpcpd,phpcb"/>
 	<target name="build" depends="lint,phpunit"/>
-    <!-- FIXME: msgfmt => plural handling is a GNU gettext extension -->
-	<!--<target name="lint" depends="php-lint,sql-lint,po-lint,js-lint,css-lint"/>-->
 	<target name="lint" depends="php-lint,sql-lint,js-lint,css-lint,xml-lint"/>
 
 	<!-- Log and tmp folders cleanup -->
@@ -46,13 +44,7 @@
 		</apply>
 	</target>
 
-	<!--
-		Syntax checking for .sql files (PostgreSQL)
-
-		sudo apt-get install python-pip
-		sudo apt-get install libecpg-dev
-		sudo pip install pgsanity
-	-->
+	<!-- Syntax checking for .sql files (PostgreSQL) -->
 	<target name="sql-lint">
 		<exec executable="bash" failonerror="on" logerror="on">
 		  <arg value="-c"/>
@@ -60,11 +52,7 @@
 		</exec>
 	</target>
 
-	<!--
-		Syntax checking for .po files
-
-        sudo aptitude install gettext
-	-->
+	<!-- Syntax checking for .po files -->
 	<target name="po-lint">
 		<apply executable="msgfmt" dir="${dir.cakephp.plugin}" failonerror="on" logerror="on">
 			<arg line="-v"/>
@@ -77,24 +65,14 @@
 		</apply>
 	</target>
 
-	<!--
-		Syntax checking for .js files
-
-		sudo aptitude install nodejs nodejs-legacy npm
-		sudo npm install -g esprima
-	-->
+	<!-- Syntax checking for .js files -->
 	<target name="js-lint">
 		<apply executable="esvalidate" dir="${dir.cakephp.plugin}" failonerror="on" logerror="on">
 			<fileset dir="${dir.cakephp.plugin}" includes="**/**.js"/>
 		</apply>
 	</target>
 
-	<!--
-		Syntax checking for .css files
-
-		sudo aptitude install nodejs nodejs-legacy npm
-		sudo npm install -g csslint
-	-->
+	<!-- Syntax checking for .css files -->
 	<target name="css-lint">
 		<apply executable="csslint" dir="${dir.cakephp.plugin}" failonerror="on" logerror="on">
 			<arg line="--format=compact"/>
@@ -127,7 +105,7 @@
 		</exec>
 	</target>
 
-	<!-- Unit tests only -->
+	<!-- Unit tests -->
 	<target name="phpunit_only">
 		<exec executable="vendor/bin/phpunit" dir="${basedir}" failonerror="true">
 			<arg line="--report-useless-tests
@@ -138,6 +116,7 @@
 		</exec>
 	</target>
 
+	<!-- Code metrics (files, classes, etc) -->
 	<target name="phploc" depends="clean,php-lint">
 		<exec executable="phploc">
 			<arg value="--log-csv" />
@@ -146,14 +125,7 @@
 		</exec>
 	</target>
 
-	<!--
-		Documentation
-
-        pear channel-discover pear.phpdoc.org
-        pear install phpdoc/phpDocumentor-alpha
-        extension=xmlreader.so
-        extension=xsl.so
-	-->
+	<!-- Documentation -->
 	<target name="phpdoc" depends="clean,php-lint">
 		<exec executable="phpdoc" dir="${dir.cakephp.plugin}" failonerror="false" logerror="on">
 			<arg line="--title '${ant.project.name}'
@@ -163,12 +135,7 @@
 			</exec>
 	</target>
 
-	<!--
-        Checkstyle
-
-        mv vendor/wimg/php-compatibility vendor/wimg/PHPCompatibility
-        vendor/bin/phpcs - -config-set installed_paths vendor/cakephp/cakephp-codesniffer,vendor/wimg
-    -->
+	<!-- Checkstyle -->
 	<target name="phpcs" depends="clean,php-lint">
 		<exec executable="vendor/bin/phpcs"
 			  dir="${basedir}"
