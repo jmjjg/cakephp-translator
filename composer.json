@@ -1,0 +1,28 @@
+{
+    "name": "jmjjg/cakephp3-translator",
+    "description": "CakePHP 3 plugin that allows multiple possible domains to be checked for a translation, automatic translations based on the controller and action",
+    "keywords": ["CakePHP", "Translator"],
+    "homepage" : "https://github.com/jmjjg/cakephp3-translator",
+    "license": "GPL-2.0+",
+    "type": "cakephp-plugin",
+    "require": {
+        "cakephp/cakephp": ">=3.0.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "squizlabs/php_codesniffer" : "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Translator\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Translator\\Test\\": "tests"
+        }
+    },
+    "extra": {
+        "installer-name": "Translator"
+    }
+}
